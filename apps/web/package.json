@@ -12,6 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@tresjs/cientos": "^5.1.0",
     "@tresjs/core": "^5.1.0",
     "three": "^0.181.1",
     "ui": "*",

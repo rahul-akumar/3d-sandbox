@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { useLoop } from '@tresjs/core'
 import { ref, computed, onMounted, shallowRef } from 'vue'
-import { BufferAttribute, Color, PlaneGeometry } from 'three'
+import { BufferAttribute, Color, PlaneGeometry, PerspectiveCamera } from 'three'
 import { useSceneControls } from '../composables/use-scene-controls'
+import { OrbitControls } from '@tresjs/cientos'
 
 const { state } = useSceneControls()
 
 // Reference to our donut mesh for animation
 const donutRef = ref()
 
+// Reference to the Three.js camera controlled by OrbitControls
+const cameraRef = ref<PerspectiveCamera | null>(null)
+
 // Terrain geometry (low-poly, noise-based)
 const terrainGeometry = shallowRef<PlaneGeometry | null>(null)
 
 const terrainSize = 60
-const terrainSegments = 120
+const terrainSegments = 100
 const terrainHeight = 3
 
 function heightNoise(x: number, y: number): number {
@@ -94,7 +98,14 @@ const rotationSpeedY = computed(() => state.animation.rotationSpeedY)
 // Animation loop
 const { onBeforeRender } = useLoop()
 
-onBeforeRender(({ elapsed }) => {
+onBeforeRender(({ elapsed, camera }) => {
+  // Keep reactive camera state in sync with the actual Three.js camera
+  const cam = cameraRef.value ?? camera
+  if (cam) {
+    state.camera.position = [cam.position.x, cam.position.y, cam.position.z]
+    state.camera.fov = cam.fov
+  }
+
   if (!animationEnabled.value || !donutRef.value) return
 
   donutRef.value.rotation.x = elapsed * rotationSpeedX.value
@@ -104,25 +115,27 @@ onBeforeRender(({ elapsed }) => {
 
 <template>
   <!-- Camera Setup -->
-  <TresPerspectiveCamera :position="cameraPosition" :fov="cameraFov" :look-at="[0, 0, 0]" />
-
+  <TresPerspectiveCamera
+    ref="cameraRef"
+    :position="cameraPosition"
+    :fov="cameraFov"
+    :look-at="[0, 0, 0]"
+  />
+  <OrbitControls
+    make-default
+    :enable-pan="true"
+    :enable-damping="true"
+    :damping-factor="0.05"
+    :enable-zoom="true"
+  />
   <!-- Basic lighting for standard material -->
   <TresAmbientLight :intensity="ambientIntensity" :color="ambientColor" />
-  <TresDirectionalLight
-    :position="directionalPosition"
-    :intensity="directionalIntensity"
-    :color="directionalColor"
-    cast-shadow
-  />
+  <TresDirectionalLight :position="directionalPosition" :intensity="directionalIntensity" :color="directionalColor"
+    cast-shadow />
 
   <!-- Low-poly terrain -->
-  <TresMesh
-    v-if="terrainGeometry"
-    :geometry="terrainGeometry"
-    :rotation="[-Math.PI / 2, 0, 0]"
-    :position="[0, -3, 0]"
-    receive-shadow
-  >
+  <TresMesh v-if="terrainGeometry" :geometry="terrainGeometry" :rotation="[-Math.PI / 2, 0, 0]" :position="[0, -3, 0]"
+    receive-shadow>
     <TresMeshStandardMaterial vertex-colors flat-shading />
   </TresMesh>
 
