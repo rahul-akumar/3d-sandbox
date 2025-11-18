@@ -33,6 +33,19 @@ export interface SceneControlsState {
     rotationSpeedX: number
     rotationSpeedY: number
   }
+  /**
+   * Simple interaction state for selection and keyboard-driven movement.
+   */
+  interaction: {
+    /** Currently selected object in the scene, or 'none'. */
+    selectedObject: 'none' | 'donut'
+  }
+  input: {
+    moveForward: boolean
+    moveBackward: boolean
+    moveLeft: boolean
+    moveRight: boolean
+  }
 }
 
 const state = reactive<SceneControlsState>({
@@ -65,6 +78,15 @@ const state = reactive<SceneControlsState>({
     enabled: true,
     rotationSpeedX: 0.5,
     rotationSpeedY: 0.3,
+  },
+  interaction: {
+    selectedObject: 'none',
+  },
+  input: {
+    moveForward: false,
+    moveBackward: false,
+    moveLeft: false,
+    moveRight: false,
   },
 })
 
