@@ -1,8 +1,24 @@
 <script setup lang="ts">
-import { Page } from "ui";
-import { name } from "../package.json";
+import { TresCanvas } from '@tresjs/core'
+import FirstExperience from './components/first-exp.vue'
+import SceneControls from './components/scene-controls.vue'
 </script>
 
 <template>
-  <Page :app-name="name" />
+  <div class="app-root">
+    <TresCanvas clear-color="#1d1e1f" window-size>
+      <FirstExperience />
+    </TresCanvas>
+
+    <SceneControls />
+  </div>
 </template>
+
+<style scoped>
+.app-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+</style>
