@@ -100,11 +100,10 @@ const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ elapsed, camera }) => {
   // Keep reactive camera state in sync with the actual Three.js camera
-  const cam = cameraRef.value ?? camera
-  if (cam) {
-    state.camera.position = [cam.position.x, cam.position.y, cam.position.z]
-    state.camera.fov = cam.fov
-  }
+  const cam = (cameraRef.value ?? camera.value) as PerspectiveCamera | undefined
+  if (!cam) return
+  state.camera.position = [cam.position.x, cam.position.y, cam.position.z]
+  state.camera.fov = cam.fov
 
   if (!animationEnabled.value || !donutRef.value) return
 
@@ -115,19 +114,8 @@ onBeforeRender(({ elapsed, camera }) => {
 
 <template>
   <!-- Camera Setup -->
-  <TresPerspectiveCamera
-    ref="cameraRef"
-    :position="cameraPosition"
-    :fov="cameraFov"
-    :look-at="[0, 0, 0]"
-  />
-  <OrbitControls
-    make-default
-    :enable-pan="true"
-    :enable-damping="true"
-    :damping-factor="0.05"
-    :enable-zoom="true"
-  />
+  <TresPerspectiveCamera ref="cameraRef" :position="cameraPosition" :fov="cameraFov" :look-at="[0, 0, 0]" />
+  <OrbitControls make-default :enable-pan="true" :enable-damping="true" :damping-factor="0.05" :enable-zoom="true" />
   <!-- Basic lighting for standard material -->
   <TresAmbientLight :intensity="ambientIntensity" :color="ambientColor" />
   <TresDirectionalLight :position="directionalPosition" :intensity="directionalIntensity" :color="directionalColor"
