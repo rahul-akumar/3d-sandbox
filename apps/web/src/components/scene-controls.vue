@@ -4,20 +4,6 @@ import { useSceneControls } from '../composables/use-scene-controls'
 
 const { state } = useSceneControls()
 
-const cameraPos = computed({
-  get: () => state.camera.position,
-  set: (val: [number, number, number]) => {
-    state.camera.position = val
-  },
-})
-
-const dirLightPos = computed({
-  get: () => state.lights.directional.position,
-  set: (val: [number, number, number]) => {
-    state.lights.directional.position = val
-  },
-})
-
 const objectPos = computed({
   get: () => state.object.position,
   set: (val: [number, number, number]) => {
@@ -44,128 +30,8 @@ function updateVec3(
 </script>
 
 <template>
-  <aside class="controls">
-    <h2 class="controls__title">Scene Controls</h2>
-
-    <!-- Camera -->
-    <section class="controls__section">
-      <h3>Camera</h3>
-
-      <div class="field">
-        <label>Position</label>
-        <div class="field-row">
-          <div class="field-col">
-            <span>X</span>
-            <input type="number" step="0.1" :value="cameraPos[0]" @input="
-              cameraPos = updateVec3(
-                cameraPos,
-                0,
-                Number(($event.target as HTMLInputElement).value),
-              )
-              " />
-          </div>
-          <div class="field-col">
-            <span>Y</span>
-            <input type="number" step="0.1" :value="cameraPos[1]" @input="
-              cameraPos = updateVec3(
-                cameraPos,
-                1,
-                Number(($event.target as HTMLInputElement).value),
-              )
-              " />
-          </div>
-          <div class="field-col">
-            <span>Z</span>
-            <input type="number" step="0.1" :value="cameraPos[2]" @input="
-              cameraPos = updateVec3(
-                cameraPos,
-                2,
-                Number(($event.target as HTMLInputElement).value),
-              )
-              " />
-          </div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="camera-fov">FOV (°)</label>
-        <input id="camera-fov" v-model.number="state.camera.fov" type="range" min="20" max="100" step="1" />
-        <span class="field-value">{{ state.camera.fov.toFixed(0) }}</span>
-      </div>
-    </section>
-
-    <!-- Lights -->
-    <section class="controls__section">
-      <h3>Lights</h3>
-
-      <div class="subsection">
-        <h4>Ambient</h4>
-        <div class="field">
-          <label for="ambient-intensity">Intensity</label>
-          <input id="ambient-intensity" v-model.number="state.lights.ambient.intensity" type="range" min="0" max="2"
-            step="0.05" />
-          <span class="field-value">
-            {{ state.lights.ambient.intensity.toFixed(2) }}
-          </span>
-        </div>
-        <div class="field">
-          <label for="ambient-color">Color</label>
-          <input id="ambient-color" v-model="state.lights.ambient.color" type="color" />
-        </div>
-      </div>
-
-      <div class="subsection">
-        <h4>Directional</h4>
-        <div class="field">
-          <label for="dir-intensity">Intensity</label>
-          <input id="dir-intensity" v-model.number="state.lights.directional.intensity" type="range" min="0" max="5"
-            step="0.05" />
-          <span class="field-value">
-            {{ state.lights.directional.intensity.toFixed(2) }}
-          </span>
-        </div>
-        <div class="field">
-          <label for="dir-color">Color</label>
-          <input id="dir-color" v-model="state.lights.directional.color" type="color" />
-        </div>
-
-        <div class="field">
-          <label>Position</label>
-          <div class="field-row">
-            <div class="field-col">
-              <span>X</span>
-              <input type="number" step="0.1" :value="dirLightPos[0]" @input="
-                dirLightPos = updateVec3(
-                  dirLightPos,
-                  0,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-                " />
-            </div>
-            <div class="field-col">
-              <span>Y</span>
-              <input type="number" step="0.1" :value="dirLightPos[1]" @input="
-                dirLightPos = updateVec3(
-                  dirLightPos,
-                  1,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-                " />
-            </div>
-            <div class="field-col">
-              <span>Z</span>
-              <input type="number" step="0.1" :value="dirLightPos[2]" @input="
-                dirLightPos = updateVec3(
-                  dirLightPos,
-                  2,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-                " />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <aside v-if="state.interaction.selectedObject !== 'none'" class="controls">
+    <h2 class="controls__title">Object Controls</h2>
 
     <!-- Object -->
     <section class="controls__section">
