@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { useLoop } from '@tresjs/core'
-import { ref, computed, onMounted, shallowRef } from 'vue'
-import { BufferAttribute, Color, PlaneGeometry, PerspectiveCamera, Vector3 } from 'three'
+import { useLoop, useTres } from '@tresjs/core'
+import { ref, computed, onMounted, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { BufferAttribute, Box3, Box3Helper, Color, PlaneGeometry, PerspectiveCamera, Vector3 } from 'three'
 import { useSceneControls } from '../composables/use-scene-controls'
-import { OrbitControls } from '@tresjs/cientos'
+import { OrbitControls, TransformControls } from '@tresjs/cientos'
 
 const { state } = useSceneControls()
 
-// Reference to our donut mesh for animation
+// TresJS context (scene, renderer, camera, etc.)
+const { scene } = useTres()
+
+// Reference to our donut mesh for animation & selection
 const donutRef = ref()
 
 // Reference to the Three.js camera controlled by OrbitControls
@@ -16,8 +19,14 @@ const cameraRef = ref<PerspectiveCamera | null>(null)
 // Reference to OrbitControls so we can keep its target in sync when moving the camera
 const controlsRef = ref<InstanceType<typeof OrbitControls> | null>(null)
 
+// Transform gizmo mode (you can expose this in the UI later)
+const transformMode = ref<'translate' | 'rotate' | 'scale'>('translate')
+
 // Terrain geometry (low-poly, noise-based)
 const terrainGeometry = shallowRef<PlaneGeometry | null>(null)
+
+// Bounding box helper for the currently selected object
+const selectionBox = shallowRef<Box3Helper | null>(null)
 
 const terrainSize = 60
 const terrainSegments = 100
@@ -114,6 +123,72 @@ function selectDonut() {
   state.interaction.selectedObject = 'donut'
 }
 
+function ensureSelectionBoxForDonut() {
+  if (!donutRef.value) return
+
+  if (!selectionBox.value) {
+    const box = new Box3().setFromObject(donutRef.value)
+    const helper = new Box3Helper(box, 0xffff00)
+    selectionBox.value = helper
+    scene.value.add(helper)
+  } else {
+    selectionBox.value.box.setFromObject(donutRef.value)
+    selectionBox.value.visible = true
+  }
+}
+
+function hideSelectionBox() {
+  if (selectionBox.value) {
+    selectionBox.value.visible = false
+  }
+}
+
+function handleTransformMouseDown() {
+  if (controlsRef.value && 'enabled' in controlsRef.value) {
+    ; (controlsRef.value as any).enabled = false
+  }
+}
+
+function handleTransformMouseUp() {
+  if (controlsRef.value && 'enabled' in controlsRef.value) {
+    ; (controlsRef.value as any).enabled = true
+  }
+}
+
+function handleTransformObjectChange() {
+  if (!donutRef.value) return
+
+  const { x, y, z } = donutRef.value.position
+  state.object.position = [x, y, z]
+}
+
+watch(
+  () => state.interaction.selectedObject,
+  (selected) => {
+    if (selected === 'donut') {
+      ensureSelectionBoxForDonut()
+    } else {
+      hideSelectionBox()
+    }
+  },
+)
+
+onBeforeUnmount(() => {
+  if (selectionBox.value) {
+    scene.value.remove(selectionBox.value)
+    // Clean up underlying resources
+    selectionBox.value.geometry.dispose()
+    // material can be an array or single material
+    const material: any = selectionBox.value.material as any
+    if (Array.isArray(material)) {
+      material.forEach((m) => m.dispose && m.dispose())
+    } else if (material && typeof material.dispose === 'function') {
+      material.dispose()
+    }
+    selectionBox.value = null
+  }
+})
+
 // Animation & update loop
 const { onBeforeRender } = useLoop()
 
@@ -163,7 +238,14 @@ onBeforeRender(({ elapsed, delta, camera }) => {
   state.camera.position = [cam.position.x, cam.position.y, cam.position.z]
   state.camera.fov = cam.fov
 
-  if (!animationEnabled.value || !donutRef.value) return
+  // Keep the selection box in sync with the donut's transform
+  if (selectionBox.value && state.interaction.selectedObject === 'donut' && donutRef.value) {
+    selectionBox.value.box.setFromObject(donutRef.value)
+  }
+
+  // Pause donut spin while it's selected so the bounding box stays stable
+  if (!donutRef.value || state.interaction.selectedObject === 'donut') return
+  if (!animationEnabled.value) return
 
   donutRef.value.rotation.x = elapsed * rotationSpeedX.value
   donutRef.value.rotation.y = elapsed * rotationSpeedY.value
@@ -194,6 +276,17 @@ onBeforeRender(({ elapsed, delta, camera }) => {
       <TresMeshStandardMaterial :color="materialColor" :metalness="metalness" :roughness="roughness" />
     </TresMesh>
   </TresGroup>
+
+  <!-- Transform gizmo for the selected donut -->
+  <TransformControls
+    v-if="state.interaction.selectedObject === 'donut' && donutRef && cameraRef"
+    :object="donutRef"
+    :camera="cameraRef"
+    :mode="transformMode"
+    @mouseDown="handleTransformMouseDown"
+    @mouseUp="handleTransformMouseUp"
+    @objectChange="handleTransformObjectChange"
+  />
 
   <!-- Visual Helpers -->
   <TresAxesHelper />
