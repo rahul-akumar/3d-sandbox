@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useSceneControls } from '../composables/useSceneControls'
+import { useSceneControls } from '../composables/use-scene-controls'
 
 const { state } = useSceneControls()
 
@@ -56,62 +56,40 @@ function updateVec3(
         <div class="field-row">
           <div class="field-col">
             <span>X</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="cameraPos[0]"
-              @input="
-                cameraPos = updateVec3(
-                  cameraPos,
-                  0,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="cameraPos[0]" @input="
+              cameraPos = updateVec3(
+                cameraPos,
+                0,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Y</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="cameraPos[1]"
-              @input="
-                cameraPos = updateVec3(
-                  cameraPos,
-                  1,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="cameraPos[1]" @input="
+              cameraPos = updateVec3(
+                cameraPos,
+                1,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Z</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="cameraPos[2]"
-              @input="
-                cameraPos = updateVec3(
-                  cameraPos,
-                  2,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="cameraPos[2]" @input="
+              cameraPos = updateVec3(
+                cameraPos,
+                2,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
         </div>
       </div>
 
       <div class="field">
         <label for="camera-fov">FOV (°)</label>
-        <input
-          id="camera-fov"
-          v-model.number="state.camera.fov"
-          type="range"
-          min="20"
-          max="100"
-          step="1"
-        />
+        <input id="camera-fov" v-model.number="state.camera.fov" type="range" min="20" max="100" step="1" />
         <span class="field-value">{{ state.camera.fov.toFixed(0) }}</span>
       </div>
     </section>
@@ -124,25 +102,15 @@ function updateVec3(
         <h4>Ambient</h4>
         <div class="field">
           <label for="ambient-intensity">Intensity</label>
-          <input
-            id="ambient-intensity"
-            v-model.number="state.lights.ambient.intensity"
-            type="range"
-            min="0"
-            max="2"
-            step="0.05"
-          />
+          <input id="ambient-intensity" v-model.number="state.lights.ambient.intensity" type="range" min="0" max="2"
+            step="0.05" />
           <span class="field-value">
             {{ state.lights.ambient.intensity.toFixed(2) }}
           </span>
         </div>
         <div class="field">
           <label for="ambient-color">Color</label>
-          <input
-            id="ambient-color"
-            v-model="state.lights.ambient.color"
-            type="color"
-          />
+          <input id="ambient-color" v-model="state.lights.ambient.color" type="color" />
         </div>
       </div>
 
@@ -150,25 +118,15 @@ function updateVec3(
         <h4>Directional</h4>
         <div class="field">
           <label for="dir-intensity">Intensity</label>
-          <input
-            id="dir-intensity"
-            v-model.number="state.lights.directional.intensity"
-            type="range"
-            min="0"
-            max="5"
-            step="0.05"
-          />
+          <input id="dir-intensity" v-model.number="state.lights.directional.intensity" type="range" min="0" max="5"
+            step="0.05" />
           <span class="field-value">
             {{ state.lights.directional.intensity.toFixed(2) }}
           </span>
         </div>
         <div class="field">
           <label for="dir-color">Color</label>
-          <input
-            id="dir-color"
-            v-model="state.lights.directional.color"
-            type="color"
-          />
+          <input id="dir-color" v-model="state.lights.directional.color" type="color" />
         </div>
 
         <div class="field">
@@ -176,48 +134,33 @@ function updateVec3(
           <div class="field-row">
             <div class="field-col">
               <span>X</span>
-              <input
-                type="number"
-                step="0.1"
-                :value="dirLightPos[0]"
-                @input="
-                  dirLightPos = updateVec3(
-                    dirLightPos,
-                    0,
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
+              <input type="number" step="0.1" :value="dirLightPos[0]" @input="
+                dirLightPos = updateVec3(
+                  dirLightPos,
+                  0,
+                  Number(($event.target as HTMLInputElement).value),
+                )
+                " />
             </div>
             <div class="field-col">
               <span>Y</span>
-              <input
-                type="number"
-                step="0.1"
-                :value="dirLightPos[1]"
-                @input="
-                  dirLightPos = updateVec3(
-                    dirLightPos,
-                    1,
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
+              <input type="number" step="0.1" :value="dirLightPos[1]" @input="
+                dirLightPos = updateVec3(
+                  dirLightPos,
+                  1,
+                  Number(($event.target as HTMLInputElement).value),
+                )
+                " />
             </div>
             <div class="field-col">
               <span>Z</span>
-              <input
-                type="number"
-                step="0.1"
-                :value="dirLightPos[2]"
-                @input="
-                  dirLightPos = updateVec3(
-                    dirLightPos,
-                    2,
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
+              <input type="number" step="0.1" :value="dirLightPos[2]" @input="
+                dirLightPos = updateVec3(
+                  dirLightPos,
+                  2,
+                  Number(($event.target as HTMLInputElement).value),
+                )
+                " />
             </div>
           </div>
         </div>
@@ -233,48 +176,33 @@ function updateVec3(
         <div class="field-row">
           <div class="field-col">
             <span>X</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="objectPos[0]"
-              @input="
-                objectPos = updateVec3(
-                  objectPos,
-                  0,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="objectPos[0]" @input="
+              objectPos = updateVec3(
+                objectPos,
+                0,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Y</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="objectPos[1]"
-              @input="
-                objectPos = updateVec3(
-                  objectPos,
-                  1,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="objectPos[1]" @input="
+              objectPos = updateVec3(
+                objectPos,
+                1,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Z</span>
-            <input
-              type="number"
-              step="0.1"
-              :value="objectPos[2]"
-              @input="
-                objectPos = updateVec3(
-                  objectPos,
-                  2,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="number" step="0.1" :value="objectPos[2]" @input="
+              objectPos = updateVec3(
+                objectPos,
+                2,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
         </div>
       </div>
@@ -284,54 +212,33 @@ function updateVec3(
         <div class="field-row">
           <div class="field-col">
             <span>X</span>
-            <input
-              type="range"
-              min="0.1"
-              max="5"
-              step="0.1"
-              :value="objectScale[0]"
-              @input="
-                objectScale = updateVec3(
-                  objectScale,
-                  0,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="range" min="0.1" max="5" step="0.1" :value="objectScale[0]" @input="
+              objectScale = updateVec3(
+                objectScale,
+                0,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Y</span>
-            <input
-              type="range"
-              min="0.1"
-              max="5"
-              step="0.1"
-              :value="objectScale[1]"
-              @input="
-                objectScale = updateVec3(
-                  objectScale,
-                  1,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="range" min="0.1" max="5" step="0.1" :value="objectScale[1]" @input="
+              objectScale = updateVec3(
+                objectScale,
+                1,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
           <div class="field-col">
             <span>Z</span>
-            <input
-              type="range"
-              min="0.1"
-              max="5"
-              step="0.1"
-              :value="objectScale[2]"
-              @input="
-                objectScale = updateVec3(
-                  objectScale,
-                  2,
-                  Number(($event.target as HTMLInputElement).value),
-                )
-              "
-            />
+            <input type="range" min="0.1" max="5" step="0.1" :value="objectScale[2]" @input="
+              objectScale = updateVec3(
+                objectScale,
+                2,
+                Number(($event.target as HTMLInputElement).value),
+              )
+              " />
           </div>
         </div>
       </div>
@@ -348,23 +255,12 @@ function updateVec3(
 
       <div class="field">
         <label for="wire-color">Wireframe color</label>
-        <input
-          id="wire-color"
-          v-model="state.material.wireframeColor"
-          type="color"
-        />
+        <input id="wire-color" v-model="state.material.wireframeColor" type="color" />
       </div>
 
       <div class="field">
         <label for="metalness">Metalness</label>
-        <input
-          id="metalness"
-          v-model.number="state.material.metalness"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-        />
+        <input id="metalness" v-model.number="state.material.metalness" type="range" min="0" max="1" step="0.01" />
         <span class="field-value">
           {{ state.material.metalness.toFixed(2) }}
         </span>
@@ -372,14 +268,7 @@ function updateVec3(
 
       <div class="field">
         <label for="roughness">Roughness</label>
-        <input
-          id="roughness"
-          v-model.number="state.material.roughness"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-        />
+        <input id="roughness" v-model.number="state.material.roughness" type="range" min="0" max="1" step="0.01" />
         <span class="field-value">
           {{ state.material.roughness.toFixed(2) }}
         </span>
@@ -393,25 +282,14 @@ function updateVec3(
       <div class="field field--inline">
         <label for="anim-enabled">Enabled</label>
         <label class="switch">
-          <input
-            id="anim-enabled"
-            v-model="state.animation.enabled"
-            type="checkbox"
-          />
+          <input id="anim-enabled" v-model="state.animation.enabled" type="checkbox" />
           <span class="slider" />
         </label>
       </div>
 
       <div class="field">
         <label for="rot-x">Rotation speed X</label>
-        <input
-          id="rot-x"
-          v-model.number="state.animation.rotationSpeedX"
-          type="range"
-          min="-5"
-          max="5"
-          step="0.1"
-        />
+        <input id="rot-x" v-model.number="state.animation.rotationSpeedX" type="range" min="-5" max="5" step="0.1" />
         <span class="field-value">
           {{ state.animation.rotationSpeedX.toFixed(2) }}
         </span>
@@ -419,14 +297,7 @@ function updateVec3(
 
       <div class="field">
         <label for="rot-y">Rotation speed Y</label>
-        <input
-          id="rot-y"
-          v-model.number="state.animation.rotationSpeedY"
-          type="range"
-          min="-5"
-          max="5"
-          step="0.1"
-        />
+        <input id="rot-y" v-model.number="state.animation.rotationSpeedY" type="range" min="-5" max="5" step="0.1" />
         <span class="field-value">
           {{ state.animation.rotationSpeedY.toFixed(2) }}
         </span>
@@ -437,7 +308,7 @@ function updateVec3(
 
 <style scoped>
 .controls {
-  position: absolute;
+  position: fixed;
   top: 1rem;
   right: 1rem;
   max-width: 320px;
@@ -589,11 +460,11 @@ function updateVec3(
   transition: transform 0.2s ease;
 }
 
-.switch input:checked + .slider {
+.switch input:checked+.slider {
   background-color: #22c55e;
 }
 
-.switch input:checked + .slider::before {
+.switch input:checked+.slider::before {
   transform: translateX(16px);
 }
 </style>

@@ -6,7 +6,7 @@ import SceneControls from './components/scene-controls.vue'
 
 <template>
   <div class="app-root">
-    <TresCanvas clear-color="#1d1e1f" window-size>
+    <TresCanvas clear-color="#1d1e1f" window-size shadows>
       <FirstExperience />
     </TresCanvas>
 
