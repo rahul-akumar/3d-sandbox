@@ -2,6 +2,7 @@
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls, Stars } from '@tresjs/cientos'
 import Planet from './Planet.vue'
+import AsteroidBelt from './AsteroidBelt.vue'
 
 const planets = [
   { name: 'Mercury', size: 0.4, distance: 10, color: '#8c8c8c', speed: 1.5 },
@@ -39,6 +40,14 @@ const planets = [
       :distance="planet.distance"
       :color="planet.color"
       :speed="planet.speed"
+    />
+    
+    <!-- Asteroid Belt between Mars and Jupiter -->
+    <AsteroidBelt
+      :count="1000"
+      :min-radius="28"
+      :max-radius="35"
+      :size="0.1"
     />
   </TresCanvas>
 </template>
