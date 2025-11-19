@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
+import Moon from './Moon.vue'
+
+interface MoonData {
+  name: string
+  size: number
+  distance: number
+  color: string
+  speed: number
+}
 
 const props = defineProps<{
   size: number
@@ -9,10 +18,12 @@ const props = defineProps<{
   color: string
   speed: number
   texture?: string
+  moons?: MoonData[]
 }>()
 
 const planetRef = ref<THREE.Mesh>()
 const angle = ref(Math.random() * Math.PI * 2)
+const planetPosition = ref(new THREE.Vector3(props.distance, 0, 0))
 
 // Load texture if provided
 const textureMap = ref<THREE.Texture | null>(null)
@@ -28,8 +39,11 @@ const { onBeforeRender } = useLoop()
 onBeforeRender(({ delta }) => {
   if (planetRef.value) {
     angle.value += props.speed * delta
-    planetRef.value.position.x = Math.cos(angle.value) * props.distance
-    planetRef.value.position.z = Math.sin(angle.value) * props.distance
+    const x = Math.cos(angle.value) * props.distance
+    const z = Math.sin(angle.value) * props.distance
+    planetRef.value.position.x = x
+    planetRef.value.position.z = z
+    planetPosition.value.set(x, 0, z)
   }
 })
 </script>
@@ -57,4 +71,15 @@ onBeforeRender(({ delta }) => {
       :metalness="0.2"
     />
   </TresMesh>
+
+  <!-- Moons -->
+  <Moon 
+    v-for="moon in props.moons" 
+    :key="moon.name" 
+    :size="moon.size" 
+    :distance="moon.distance" 
+    :color="moon.color" 
+    :speed="moon.speed" 
+    :planet-position="planetPosition"
+  />
 </template>
