@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls, Stars } from '@tresjs/cientos'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
 import * as THREE from 'three'
+
+// Play/pause state
+const isPaused = ref(false)
+provide('isPaused', isPaused)
+
+const togglePause = () => {
+  isPaused.value = !isPaused.value
+}
 
 // Load sun texture
 const sunTexture = ref<THREE.Texture | null>(null)
@@ -112,7 +120,17 @@ const planets = [
 </script>
 
 <template>
-  <TresCanvas clear-color="#000000" window-size :shadows="true">
+  <div style="position: relative; width: 100%; height: 100vh;">
+    <!-- Play/Pause Button -->
+    <button
+      @click="togglePause"
+      class="play-pause-button"
+      :class="{ paused: isPaused }"
+    >
+      {{ isPaused ? '▶' : '⏸' }}
+    </button>
+
+    <TresCanvas clear-color="#000000" window-size :shadows="true">
     <TresPerspectiveCamera :position="[0, 80, 180]" :look-at="[0, 0, 0]" />
     <OrbitControls />
     <Stars :radius="300" />
@@ -140,5 +158,36 @@ const planets = [
 
     <!-- Asteroid Belt between Mars and Jupiter -->
     <AsteroidBelt :count="1000" :min-radius="45" :max-radius="60" :size="0.1" />
-  </TresCanvas>
+    </TresCanvas>
+  </div>
 </template>
+
+<style scoped>
+.play-pause-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(100, 255, 100, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.play-pause-button:hover {
+  transform: scale(1.1);
+}
+
+.play-pause-button.paused {
+  background: rgba(255, 100, 100, 0.2);
+}
+</style>

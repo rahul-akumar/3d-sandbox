@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
 import Moon from './Moon.vue'
+
+const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 
 interface MoonData {
   name: string
@@ -37,7 +39,7 @@ if (props.texture) {
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
-  if (planetRef.value) {
+  if (planetRef.value && !isPaused.value) {
     angle.value += props.speed * delta
     const x = Math.cos(angle.value) * props.distance
     const z = Math.sin(angle.value) * props.distance

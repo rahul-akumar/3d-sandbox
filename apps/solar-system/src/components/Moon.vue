@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
+
+const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 
 const props = defineProps<{
   size: number
@@ -17,7 +19,7 @@ const angle = ref(Math.random() * Math.PI * 2)
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
-  if (moonRef.value && props.planetPosition) {
+  if (moonRef.value && props.planetPosition && !isPaused.value) {
     angle.value += props.speed * delta
     moonRef.value.position.x = props.planetPosition.x + Math.cos(angle.value) * props.distance
     moonRef.value.position.y = props.planetPosition.y

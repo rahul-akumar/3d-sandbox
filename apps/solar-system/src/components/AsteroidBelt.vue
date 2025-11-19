@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { shallowRef, watchEffect } from 'vue'
+import { shallowRef, watchEffect, inject, ref, type Ref } from 'vue'
 import * as THREE from 'three'
 import { useLoop } from '@tresjs/core'
+
+const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 
 const props = defineProps<{
   count: number
@@ -38,7 +40,7 @@ watchEffect(() => {
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
-  if (asteroidRef.value) {
+  if (asteroidRef.value && !isPaused.value) {
     asteroidRef.value.rotation.y += 0.05 * delta
   }
 })
