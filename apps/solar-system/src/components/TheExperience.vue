@@ -26,6 +26,13 @@ const toggleOrbits = () => {
   showOrbits.value = !showOrbits.value
 }
 
+// Star visibility state
+const showStars = ref(true)
+
+const toggleStars = () => {
+  showStars.value = !showStars.value
+}
+
 // Ref for sun mesh
 const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
 const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
@@ -147,6 +154,11 @@ const planets = [
       {{ showOrbits ? '○' : '◉' }}
     </button>
 
+    <!-- Star Toggle Button -->
+    <button @click="toggleStars" class="control-button star-toggle-button" :class="{ hidden: !showStars }">
+      {{ showStars ? '★' : '☆' }}
+    </button>
+
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
       <OrbitControls 
@@ -156,7 +168,7 @@ const planets = [
         :max-distance="1500" 
         :zoom-speed="1.2"
       />
-      <RedShiftStars :count="15000" :radius="1200" :depth="800" :size="1.5" />
+      <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
@@ -225,5 +237,14 @@ const planets = [
 
 .orbit-toggle-button.hidden {
   background: rgba(255, 255, 100, 0.2);
+}
+
+.star-toggle-button {
+  top: 160px;
+  right: 20px;
+}
+
+.star-toggle-button.hidden {
+  background: rgba(150, 100, 255, 0.2);
 }
 </style>
