@@ -11,10 +11,20 @@ const props = defineProps<{
   color: string
   speed: number
   planetPosition: THREE.Vector3
+  texture?: string
 }>()
 
 const moonRef = ref<THREE.Mesh>()
 const angle = ref(Math.random() * Math.PI * 2)
+
+// Load texture if provided
+const textureMap = ref<THREE.Texture | null>(null)
+if (props.texture) {
+  const loader = new THREE.TextureLoader()
+  loader.load(props.texture, (texture) => {
+    textureMap.value = texture
+  })
+}
 
 const { onBeforeRender } = useLoop()
 
@@ -46,6 +56,13 @@ const orbitPosition = computed(() => [
   <TresMesh ref="moonRef" cast-shadow receive-shadow>
     <TresSphereGeometry :args="[props.size, 16, 16]" />
     <TresMeshStandardMaterial 
+      v-if="textureMap"
+      :map="textureMap"
+      :roughness="0.9"
+      :metalness="0.1"
+    />
+    <TresMeshStandardMaterial 
+      v-else
       :color="props.color"
       :roughness="0.9"
       :metalness="0.1"

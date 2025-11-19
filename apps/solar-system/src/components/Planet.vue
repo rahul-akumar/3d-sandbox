@@ -12,6 +12,7 @@ interface MoonData {
   distance: number
   color: string
   speed: number
+  texture?: string
 }
 
 const props = defineProps<{
@@ -83,5 +84,6 @@ onBeforeRender(({ delta }) => {
     :color="moon.color" 
     :speed="moon.speed" 
     :planet-position="planetPosition"
+    :texture="moon.texture"
   />
 </template>

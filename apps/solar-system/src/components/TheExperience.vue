@@ -2,6 +2,8 @@
 import { ref, provide } from 'vue'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls, Stars } from '@tresjs/cientos'
+import { EffectComposerPmndrs, BloomPmndrs, GodRaysPmndrs } from '@tresjs/post-processing'
+import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
 import * as THREE from 'three'
@@ -13,6 +15,9 @@ provide('isPaused', isPaused)
 const togglePause = () => {
   isPaused.value = !isPaused.value
 }
+
+// Ref for sun mesh
+const sunRef = ref<THREE.Mesh | null>(null)
 
 // Load sun texture
 const sunTexture = ref<THREE.Texture | null>(null)
@@ -48,7 +53,7 @@ const planets = [
     speed: 1.0,
     texture: '/textures/earth.jpg',
     moons: [
-      { name: 'Moon', size: 0.27, distance: 2, color: '#aaaaaa', speed: 2.5 }
+      { name: 'Moon', size: 0.27, distance: 2, color: '#aaaaaa', speed: 2.5, texture: '/textures/moon.jpg' }
     ]
   },
   {
@@ -59,8 +64,8 @@ const planets = [
     speed: 0.8,
     texture: '/textures/mars.jpg',
     moons: [
-      { name: 'Phobos', size: 0.08, distance: 1.2, color: '#8b7355', speed: 4.0 },
-      { name: 'Deimos', size: 0.06, distance: 1.8, color: '#9d8568', speed: 3.0 }
+      { name: 'Phobos', size: 0.08, distance: 1.2, color: '#8b7355', speed: 4.0, texture: '/textures/phobos.jpg' },
+      { name: 'Deimos', size: 0.06, distance: 1.8, color: '#9d8568', speed: 3.0, texture: '/textures/deimos.jpg' }
     ]
   },
   {
@@ -85,9 +90,9 @@ const planets = [
     speed: 0.3,
     texture: '/textures/saturn.jpg',
     moons: [
-      { name: 'Titan', size: 0.51, distance: 8, color: '#cc8844', speed: 1.8 },
-      { name: 'Rhea', size: 0.15, distance: 9.5, color: '#aabbcc', speed: 1.5 },
-      { name: 'Iapetus', size: 0.15, distance: 11, color: '#665544', speed: 1.2 }
+      { name: 'Titan', size: 0.51, distance: 8, color: '#cc8844', speed: 1.8, texture: '/textures/titan.jpg' },
+      { name: 'Rhea', size: 0.15, distance: 9.5, color: '#aabbcc', speed: 1.5, },
+      { name: 'Iapetus', size: 0.15, distance: 11, color: '#665544', speed: 1.2, }
     ]
   },
   {
@@ -113,7 +118,7 @@ const planets = [
     speed: 0.1,
     texture: '/textures/neptune.jpg',
     moons: [
-      { name: 'Triton', size: 0.27, distance: 4, color: '#aaccee', speed: 2.0 }
+      { name: 'Triton', size: 0.27, distance: 4, color: '#aaccee', speed: 2.0, texture: '/textures/triton.jpg' }
     ]
   },
 ]
@@ -122,42 +127,46 @@ const planets = [
 <template>
   <div style="position: relative; width: 100%; height: 100vh;">
     <!-- Play/Pause Button -->
-    <button
-      @click="togglePause"
-      class="play-pause-button"
-      :class="{ paused: isPaused }"
-    >
+    <button @click="togglePause" class="play-pause-button" :class="{ paused: isPaused }">
       {{ isPaused ? '▶' : '⏸' }}
     </button>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
-    <TresPerspectiveCamera :position="[0, 80, 180]" :look-at="[0, 0, 0]" />
-    <OrbitControls />
-    <Stars :radius="300" />
+      <TresPerspectiveCamera :position="[0, 80, 180]" :look-at="[0, 0, 0]" />
+      <OrbitControls />
+      <Stars :radius="300" />
 
-    <!-- Reduced ambient light to see shadows better -->
-    <TresAmbientLight :intensity="0.05" />
-    <!-- Sun Light with Shadows -->
-    <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="250" :decay="2" cast-shadow />
-    <!-- Helper to visualize light (optional - can remove later) -->
-    <TresMesh :position="[0, 0, 0]">
-      <TresSphereGeometry :args="[0.5, 16, 16]" />
-      <TresMeshBasicMaterial color="#ff0000" wireframe />
-    </TresMesh>
+      <!-- Reduced ambient light to see shadows better -->
+      <TresAmbientLight :intensity="0.05" />
+      <!-- Sun Light with Shadows -->
+      <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="250" :decay="2" cast-shadow />
+      <!-- Helper to visualize light (optional - can remove later) -->
+      <TresMesh :position="[0, 0, 0]">
+        <TresSphereGeometry :args="[0.5, 16, 16]" />
+        <TresMeshBasicMaterial color="#ff0000" wireframe />
+      </TresMesh>
 
-    <!-- Sun Visual -->
-    <TresMesh :position="[0, 0, 0]">
-      <TresSphereGeometry :args="[5, 32, 32]" />
-      <TresMeshBasicMaterial v-if="sunTexture" :map="sunTexture" />
-      <TresMeshBasicMaterial v-else color="#ffff00" />
-    </TresMesh>
+      <!-- Sun Visual -->
+      <TresMesh ref="sunRef" :position="[0, 0, 0]">
+        <TresSphereGeometry :args="[5, 32, 32]" />
+        <TresMeshBasicMaterial v-if="sunTexture" :map="sunTexture" />
+        <TresMeshBasicMaterial v-else color="#ffff00" />
+      </TresMesh>
 
-    <!-- Planets -->
-    <Planet v-for="planet in planets" :key="planet.name" :size="planet.size" :distance="planet.distance"
-      :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" />
+      <!-- Planets -->
+      <Planet v-for="planet in planets" :key="planet.name" :size="planet.size" :distance="planet.distance"
+        :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" />
 
-    <!-- Asteroid Belt between Mars and Jupiter -->
-    <AsteroidBelt :count="1000" :min-radius="45" :max-radius="60" :size="0.1" />
+      <!-- Asteroid Belt between Mars and Jupiter -->
+      <AsteroidBelt :count="1000" :min-radius="45" :max-radius="60" :size="0.1" />
+
+      <!-- Post-processing for light rays/bloom -->
+      <EffectComposerPmndrs>
+        <BloomPmndrs :intensity="1.5" :luminance-threshold="0.3" :luminance-smoothing="0.9"
+          :blend-function="BlendFunction.ADD" :kernel-size="KernelSize.LARGE" />
+        <GodRaysPmndrs v-if="sunRef" :sun="sunRef" :density="0.96" :decay="0.92" :weight="0.3" :exposure="0.6"
+          :samples="60" :blur="true" />
+      </EffectComposerPmndrs>
     </TresCanvas>
   </div>
 </template>
