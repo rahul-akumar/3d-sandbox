@@ -5,6 +5,7 @@ import * as THREE from 'three'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
+const simulationSpeed = inject<Ref<number>>('simulationSpeed', ref(1))
 
 const props = defineProps<{
   size: number
@@ -32,13 +33,13 @@ const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
   if (moonRef.value && props.planetPosition && !isPaused.value) {
-    angle.value += props.speed * delta
+    angle.value += props.speed * delta * simulationSpeed.value
     moonRef.value.position.x = props.planetPosition.x + Math.cos(angle.value) * props.distance
     moonRef.value.position.y = props.planetPosition.y
     moonRef.value.position.z = props.planetPosition.z + Math.sin(angle.value) * props.distance
     
     // On-axis rotation
-    moonRef.value.rotation.y += (props.rotationSpeed || 0.8) * delta
+    moonRef.value.rotation.y += (props.rotationSpeed || 0.8) * delta * simulationSpeed.value
   }
 })
 

@@ -18,6 +18,17 @@ const togglePause = () => {
   isPaused.value = !isPaused.value
 }
 
+// Simulation speed state
+const speedMultipliers = [1, 2, 4, 6, 8, 10]
+const currentSpeedIndex = ref(0)
+const simulationSpeed = ref(speedMultipliers[0])
+provide('simulationSpeed', simulationSpeed)
+
+const cycleSpeed = () => {
+  currentSpeedIndex.value = (currentSpeedIndex.value + 1) % speedMultipliers.length
+  simulationSpeed.value = speedMultipliers[currentSpeedIndex.value]
+}
+
 // Orbit visibility state
 const showOrbits = ref(true)
 provide('showOrbits', showOrbits)
@@ -144,30 +155,33 @@ const planets = [
 
 <template>
   <div style="position: relative; width: 100%; height: 100vh;">
-    <!-- Play/Pause Button -->
-    <button @click="togglePause" class="control-button play-pause-button" :class="{ paused: isPaused }">
-      {{ isPaused ? '▶' : '⏸' }}
-    </button>
+    <!-- HUD Control Bar -->
+    <div class="hud-bar">
+      <!-- Play/Pause Button -->
+      <button @click="togglePause" class="control-button play-pause-button" :class="{ paused: isPaused }">
+        {{ isPaused ? '▶' : '⏸' }}
+      </button>
 
-    <!-- Orbit Toggle Button -->
-    <button @click="toggleOrbits" class="control-button orbit-toggle-button" :class="{ hidden: !showOrbits }">
-      {{ showOrbits ? '○' : '◉' }}
-    </button>
+      <!-- Speed Control Button -->
+      <button @click="cycleSpeed" class="control-button speed-button">
+        {{ simulationSpeed }}×
+      </button>
 
-    <!-- Star Toggle Button -->
-    <button @click="toggleStars" class="control-button star-toggle-button" :class="{ hidden: !showStars }">
-      {{ showStars ? '★' : '☆' }}
-    </button>
+      <!-- Orbit Toggle Button -->
+      <button @click="toggleOrbits" class="control-button orbit-toggle-button" :class="{ hidden: !showOrbits }">
+        {{ showOrbits ? '○' : '◉' }}
+      </button>
+
+      <!-- Star Toggle Button -->
+      <button @click="toggleStars" class="control-button star-toggle-button" :class="{ hidden: !showStars }">
+        {{ showStars ? '★' : '☆' }}
+      </button>
+    </div>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
-      <OrbitControls 
-        :enable-damping="true" 
-        :damping-factor="0.05" 
-        :min-distance="0.5" 
-        :max-distance="1500" 
-        :zoom-speed="1.2"
-      />
+      <OrbitControls :enable-damping="true" :damping-factor="0.05" :min-distance="0.5" :max-distance="1500"
+        :zoom-speed="1.2" />
       <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
@@ -199,9 +213,24 @@ const planets = [
 </template>
 
 <style scoped>
-.control-button {
+.hud-bar {
   position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.control-button {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -221,27 +250,16 @@ const planets = [
   transform: scale(1.1);
 }
 
-.play-pause-button {
-  top: 20px;
-  right: 20px;
-}
-
 .play-pause-button.paused {
   background: rgba(255, 100, 100, 0.2);
 }
 
-.orbit-toggle-button {
-  top: 90px;
-  right: 20px;
+.speed-button {
+  background: rgba(100, 200, 255, 0.2);
 }
 
 .orbit-toggle-button.hidden {
   background: rgba(255, 255, 100, 0.2);
-}
-
-.star-toggle-button {
-  top: 160px;
-  right: 20px;
 }
 
 .star-toggle-button.hidden {

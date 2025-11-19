@@ -6,6 +6,7 @@ import Moon from './Moon.vue'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
+const simulationSpeed = inject<Ref<number>>('simulationSpeed', ref(1))
 
 interface MoonData {
   name: string
@@ -44,7 +45,7 @@ const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
   if (planetRef.value && !isPaused.value) {
-    angle.value += props.speed * delta
+    angle.value += props.speed * delta * simulationSpeed.value
     const x = Math.cos(angle.value) * props.distance
     const z = Math.sin(angle.value) * props.distance
     planetRef.value.position.x = x
@@ -52,7 +53,7 @@ onBeforeRender(({ delta }) => {
     planetPosition.value.set(x, 0, z)
     
     // On-axis rotation
-    planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta
+    planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
   }
 })
 </script>
