@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, type Ref } from 'vue'
+import { ref, inject, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
 import Moon from './Moon.vue'
@@ -13,6 +13,7 @@ interface MoonData {
   distance: number
   color: string
   speed: number
+  rotationSpeed?: number
   texture?: string
 }
 
@@ -21,6 +22,7 @@ const props = defineProps<{
   distance: number
   color: string
   speed: number
+  rotationSpeed?: number
   texture?: string
   moons?: MoonData[]
 }>()
@@ -48,6 +50,9 @@ onBeforeRender(({ delta }) => {
     planetRef.value.position.x = x
     planetRef.value.position.z = z
     planetPosition.value.set(x, 0, z)
+    
+    // On-axis rotation
+    planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta
   }
 })
 </script>
@@ -84,6 +89,7 @@ onBeforeRender(({ delta }) => {
     :distance="moon.distance" 
     :color="moon.color" 
     :speed="moon.speed" 
+    :rotation-speed="moon.rotationSpeed"
     :planet-position="planetPosition"
     :texture="moon.texture"
   />

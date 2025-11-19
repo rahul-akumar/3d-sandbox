@@ -6,9 +6,11 @@ import * as THREE from 'three'
 const props = withDefaults(defineProps<{
   radius?: number
   position?: [number, number, number]
+  rotationSpeed?: number
 }>(), {
   radius: 5,
-  position: () => [0, 0, 0]
+  position: () => [0, 0, 0],
+  rotationSpeed: 0.4
 })
 
 const sunRef = ref<THREE.Mesh | null>(null)
@@ -19,7 +21,7 @@ const sunTexture = ref<THREE.Texture | null>(null)
 const loader = new THREE.TextureLoader()
 loader.load('/textures/sun.jpg', (texture) => {
   sunTexture.value = texture
-  if (sunMaterial.value) {
+  if (sunMaterial.value && sunMaterial.value.uniforms.uTexture) {
     sunMaterial.value.uniforms.uTexture.value = texture
     sunMaterial.value.needsUpdate = true
   }
@@ -34,9 +36,12 @@ onMounted(() => {
 
 const { onBeforeRender } = useLoop()
 
-onBeforeRender(({ elapsed }) => {
-  if (sunMaterial.value) {
+onBeforeRender(({ elapsed, delta }) => {
+  if (sunMaterial.value && sunMaterial.value.uniforms.uTime) {
     sunMaterial.value.uniforms.uTime.value = elapsed
+  }
+  if (sunRef.value) {
+    sunRef.value.rotation.y += props.rotationSpeed * delta
   }
 })
 
@@ -136,15 +141,10 @@ const fragmentShader = `
 <template>
   <TresMesh ref="sunRef" :position="position">
     <TresSphereGeometry :args="[radius, 64, 64]" />
-    <TresShaderMaterial
-      ref="sunMaterial"
-      :vertex-shader="vertexShader"
-      :fragment-shader="fragmentShader"
-      :uniforms="{
-        uTime: { value: 0 },
-        uTexture: { value: sunTexture },
-        uHasTexture: { value: !!sunTexture }
-      }"
-    />
+    <TresShaderMaterial ref="sunMaterial" :vertex-shader="vertexShader" :fragment-shader="fragmentShader" :uniforms="{
+      uTime: { value: 0 },
+      uTexture: { value: sunTexture },
+      uHasTexture: { value: !!sunTexture }
+    }" />
   </TresMesh>
 </template>

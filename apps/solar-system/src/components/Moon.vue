@@ -11,6 +11,7 @@ const props = defineProps<{
   distance: number
   color: string
   speed: number
+  rotationSpeed?: number
   planetPosition: THREE.Vector3
   texture?: string
 }>()
@@ -35,15 +36,18 @@ onBeforeRender(({ delta }) => {
     moonRef.value.position.x = props.planetPosition.x + Math.cos(angle.value) * props.distance
     moonRef.value.position.y = props.planetPosition.y
     moonRef.value.position.z = props.planetPosition.z + Math.sin(angle.value) * props.distance
+    
+    // On-axis rotation
+    moonRef.value.rotation.y += (props.rotationSpeed || 0.8) * delta
   }
 })
 
 // Compute orbit ring position
-const orbitPosition = computed(() => [
+const orbitPosition = computed(() => new THREE.Vector3(
   props.planetPosition.x,
   props.planetPosition.y,
   props.planetPosition.z
-])
+))
 </script>
 
 <template>
