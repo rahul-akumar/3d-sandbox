@@ -197,7 +197,7 @@ const planets = [
         :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
-      <AsteroidBelt :count="1000" :min-radius="130" :max-radius="170" :size="0.1" />
+      <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />
 
       <!-- Post-processing with separate bloom for sun and stars -->
       <EffectComposerPmndrs>

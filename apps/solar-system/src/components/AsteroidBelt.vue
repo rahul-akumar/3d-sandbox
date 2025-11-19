@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useLoop } from '@tresjs/core'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
+const simulationSpeed = inject<Ref<number>>('simulationSpeed', ref(1))
 
 const props = defineProps<{
   count: number
@@ -41,7 +42,7 @@ const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
   if (asteroidRef.value && !isPaused.value) {
-    asteroidRef.value.rotation.y += 0.05 * delta
+    asteroidRef.value.rotation.y += 0.05 * delta * simulationSpeed.value
   }
 })
 </script>
