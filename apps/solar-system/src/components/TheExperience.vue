@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted } from 'vue'
 import { TresCanvas } from '@tresjs/core'
-import { OrbitControls, Stars } from '@tresjs/cientos'
-import { EffectComposerPmndrs, BloomPmndrs, GodRaysPmndrs } from '@tresjs/post-processing'
+import { OrbitControls } from '@tresjs/cientos'
+import { EffectComposerPmndrs, BloomPmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
+import FireSun from './FireSun.vue'
+import RedShiftStars from './RedShiftStars.vue'
 import * as THREE from 'three'
 
 // Play/pause state
@@ -17,13 +19,14 @@ const togglePause = () => {
 }
 
 // Ref for sun mesh
-const sunRef = ref<THREE.Mesh | null>(null)
+const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
+const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
 
-// Load sun texture
-const sunTexture = ref<THREE.Texture | null>(null)
-const loader = new THREE.TextureLoader()
-loader.load('/textures/sun.jpg', (texture) => {
-  sunTexture.value = texture
+// Configure camera to see all layers on mount
+onMounted(() => {
+  if (cameraRef.value) {
+    cameraRef.value.layers.enableAll()
+  }
 })
 
 const planets = [
@@ -132,26 +135,17 @@ const planets = [
     </button>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
-      <TresPerspectiveCamera :position="[0, 80, 180]" :look-at="[0, 0, 0]" />
+      <TresPerspectiveCamera ref="cameraRef" :position="[0, 80, 180]" :look-at="[0, 0, 0]" />
       <OrbitControls />
-      <Stars :radius="300" />
+      <RedShiftStars :count="15000" :radius="500" :depth="400" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
       <!-- Sun Light with Shadows -->
       <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="250" :decay="2" cast-shadow />
-      <!-- Helper to visualize light (optional - can remove later) -->
-      <TresMesh :position="[0, 0, 0]">
-        <TresSphereGeometry :args="[0.5, 16, 16]" />
-        <TresMeshBasicMaterial color="#ff0000" wireframe />
-      </TresMesh>
 
-      <!-- Sun Visual -->
-      <TresMesh ref="sunRef" :position="[0, 0, 0]">
-        <TresSphereGeometry :args="[5, 32, 32]" />
-        <TresMeshBasicMaterial v-if="sunTexture" :map="sunTexture" />
-        <TresMeshBasicMaterial v-else color="#ffff00" />
-      </TresMesh>
+      <!-- Fire Sun -->
+      <FireSun ref="fireSunRef" :radius="5" :position="[0, 0, 0]" />
 
       <!-- Planets -->
       <Planet v-for="planet in planets" :key="planet.name" :size="planet.size" :distance="planet.distance"
@@ -160,12 +154,26 @@ const planets = [
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="1000" :min-radius="45" :max-radius="60" :size="0.1" />
 
-      <!-- Post-processing for light rays/bloom -->
+      <!-- Post-processing with separate bloom for sun and stars -->
       <EffectComposerPmndrs>
-        <BloomPmndrs :intensity="1.5" :luminance-threshold="0.3" :luminance-smoothing="0.9"
-          :blend-function="BlendFunction.ADD" :kernel-size="KernelSize.LARGE" />
-        <GodRaysPmndrs v-if="sunRef" :sun="sunRef" :density="0.96" :decay="0.92" :weight="0.3" :exposure="0.6"
-          :samples="60" :blur="true" />
+        <!-- Bloom for Sun (Layer 1) -->
+        <BloomPmndrs 
+          :intensity="2.5" 
+          :luminance-threshold="0.1" 
+          :luminance-smoothing="0.9"
+          :blend-function="BlendFunction.ADD" 
+          :kernel-size="KernelSize.LARGE"
+          :layers="1"
+        />
+        <!-- Bloom for Stars (Layer 2) -->
+        <BloomPmndrs 
+          :intensity="1.5" 
+          :luminance-threshold="0.2" 
+          :luminance-smoothing="0.7"
+          :blend-function="BlendFunction.ADD" 
+          :kernel-size="KernelSize.MEDIUM"
+          :layers="2"
+        />
       </EffectComposerPmndrs>
     </TresCanvas>
   </div>
