@@ -42,15 +42,19 @@ onBeforeRender(({ delta }) => {
   </TresMesh>
 
   <!-- Planet -->
-  <TresMesh ref="planetRef" :position="[distance, 0, 0]">
+  <TresMesh ref="planetRef" :position="[distance, 0, 0]" cast-shadow receive-shadow>
     <TresSphereGeometry :args="[props.size, 32, 32]" />
     <TresMeshStandardMaterial 
       v-if="textureMap" 
-      :map="textureMap" 
+      :map="textureMap"
+      :roughness="0.8"
+      :metalness="0.2"
     />
     <TresMeshStandardMaterial 
       v-else 
-      :color="props.color" 
+      :color="props.color"
+      :roughness="0.8"
+      :metalness="0.2"
     />
   </TresMesh>
 </template>

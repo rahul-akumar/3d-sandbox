@@ -26,26 +26,26 @@ const planets = [
 </script>
 
 <template>
-  <TresCanvas clear-color="#000000" window-size>
+  <TresCanvas clear-color="#000000" window-size :shadows="true">
     <TresPerspectiveCamera :position="[0, 50, 100]" :look-at="[0, 0, 0]" />
     <OrbitControls />
     <Stars />
 
-    <TresAmbientLight :intensity="0.2" />
-    <!-- Sun Light -->
-    <TresPointLight :position="[0, 0, 0]" :intensity="2" :distance="1000" :decay="2" />
+    <!-- Reduced ambient light to see shadows better -->
+    <TresAmbientLight :intensity="0.05" />
+    <!-- Sun Light with Shadows -->
+    <TresPointLight :position="[0, 0, 0]" :intensity="500" :distance="100" :decay="2" cast-shadow />
+    <!-- Helper to visualize light (optional - can remove later) -->
+    <TresMesh :position="[0, 0, 0]">
+      <TresSphereGeometry :args="[0.5, 16, 16]" />
+      <TresMeshBasicMaterial color="#ff0000" wireframe />
+    </TresMesh>
 
     <!-- Sun Visual -->
     <TresMesh :position="[0, 0, 0]">
       <TresSphereGeometry :args="[5, 32, 32]" />
-      <TresMeshBasicMaterial 
-        v-if="sunTexture" 
-        :map="sunTexture" 
-      />
-      <TresMeshBasicMaterial 
-        v-else 
-        color="#ffff00" 
-      />
+      <TresMeshBasicMaterial v-if="sunTexture" :map="sunTexture" />
+      <TresMeshBasicMaterial v-else color="#ffff00" />
     </TresMesh>
 
     <!-- Planets -->
