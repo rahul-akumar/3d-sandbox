@@ -50,7 +50,7 @@ const planets = [
     size: 0.4,
     distance: 30,
     color: '#8c8c8c',
-    speed: 1.5,
+    speed: 0.3,
     texture: '/textures/mercury.jpg',
     moons: []
   },
@@ -59,7 +59,7 @@ const planets = [
     size: 0.9,
     distance: 50,
     color: '#e3bb76',
-    speed: 1.2,
+    speed: 0.25,
     texture: '/textures/venus.jpg',
     moons: []
   },
@@ -68,10 +68,10 @@ const planets = [
     size: 1.0,
     distance: 70,
     color: '#2277ff',
-    speed: 1.0,
+    speed: 0.2,
     texture: '/textures/earth.jpg',
     moons: [
-      { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 2.5, texture: '/textures/moon.jpg' }
+      { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 0.5, texture: '/textures/moon.jpg' }
     ]
   },
   {
@@ -79,11 +79,11 @@ const planets = [
     size: 0.5,
     distance: 100,
     color: '#df4020',
-    speed: 0.8,
+    speed: 0.16,
     texture: '/textures/mars.jpg',
     moons: [
-      { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 4.0, texture: '/textures/phobos.jpg' },
-      { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 3.0, texture: '/textures/deimos.jpg' }
+      { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 0.8, texture: '/textures/phobos.jpg' },
+      { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 0.6, texture: '/textures/deimos.jpg' }
     ]
   },
   {
@@ -91,13 +91,13 @@ const planets = [
     size: 5.0,
     distance: 200,
     color: '#d8ca9d',
-    speed: 0.4,
+    speed: 0.08,
     texture: '/textures/jupiter.jpg',
     moons: [
-      { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 2.5 },
-      { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 2.0 },
-      { name: 'Ganymede', size: 0.53, distance: 17, color: '#998877', speed: 1.5 },
-      { name: 'Callisto', size: 0.48, distance: 20, color: '#776655', speed: 1.2 }
+      { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 0.5 },
+      { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 0.4 },
+      { name: 'Ganymede', size: 0.53, distance: 17, color: '#998877', speed: 0.3 },
+      { name: 'Callisto', size: 0.48, distance: 20, color: '#776655', speed: 0.25 }
     ]
   },
   {
@@ -105,12 +105,12 @@ const planets = [
     size: 4.0,
     distance: 320,
     color: '#fcd900',
-    speed: 0.3,
+    speed: 0.06,
     texture: '/textures/saturn.jpg',
     moons: [
-      { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 1.8, texture: '/textures/titan.jpg' },
-      { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 1.5, },
-      { name: 'Iapetus', size: 0.15, distance: 18, color: '#665544', speed: 1.2, }
+      { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.36, texture: '/textures/titan.jpg' },
+      { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 0.3, },
+      { name: 'Iapetus', size: 0.15, distance: 18, color: '#665544', speed: 0.24, }
     ]
   },
   {
@@ -118,14 +118,14 @@ const planets = [
     size: 2.0,
     distance: 450,
     color: '#4fd0e7',
-    speed: 0.2,
+    speed: 0.04,
     texture: '/textures/uranus.jpg',
     moons: [
-      { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 3.0 },
-      { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 2.5 },
-      { name: 'Umbriel', size: 0.12, distance: 9, color: '#8899aa', speed: 2.0 },
-      { name: 'Titania', size: 0.16, distance: 10.5, color: '#9daabb', speed: 1.8 },
-      { name: 'Oberon', size: 0.15, distance: 12, color: '#8899aa', speed: 1.5 }
+      { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 0.6 },
+      { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 0.5 },
+      { name: 'Umbriel', size: 0.12, distance: 9, color: '#8899aa', speed: 0.4 },
+      { name: 'Titania', size: 0.16, distance: 10.5, color: '#9daabb', speed: 0.36 },
+      { name: 'Oberon', size: 0.15, distance: 12, color: '#8899aa', speed: 0.3 }
     ]
   },
   {
@@ -133,10 +133,10 @@ const planets = [
     size: 2.0,
     distance: 600,
     color: '#4b70dd',
-    speed: 0.1,
+    speed: 0.02,
     texture: '/textures/neptune.jpg',
     moons: [
-      { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 2.0, texture: '/textures/triton.jpg' }
+      { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 0.4, texture: '/textures/triton.jpg' }
     ]
   },
 ]
