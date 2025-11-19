@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import Moon from './Moon.vue'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
+const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
 
 interface MoonData {
   name: string
@@ -53,7 +54,7 @@ onBeforeRender(({ delta }) => {
 
 <template>
   <!-- Orbit Path -->
-  <TresMesh :rotation-x="-Math.PI / 2">
+  <TresMesh v-if="showOrbits" :rotation-x="-Math.PI / 2">
     <TresRingGeometry :args="[props.distance - 0.05, props.distance + 0.05, 64]" />
     <TresMeshBasicMaterial color="#444" :side="THREE.DoubleSide" />
   </TresMesh>

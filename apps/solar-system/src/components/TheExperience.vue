@@ -18,6 +18,14 @@ const togglePause = () => {
   isPaused.value = !isPaused.value
 }
 
+// Orbit visibility state
+const showOrbits = ref(true)
+provide('showOrbits', showOrbits)
+
+const toggleOrbits = () => {
+  showOrbits.value = !showOrbits.value
+}
+
 // Ref for sun mesh
 const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
 const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
@@ -130,8 +138,13 @@ const planets = [
 <template>
   <div style="position: relative; width: 100%; height: 100vh;">
     <!-- Play/Pause Button -->
-    <button @click="togglePause" class="play-pause-button" :class="{ paused: isPaused }">
+    <button @click="togglePause" class="control-button play-pause-button" :class="{ paused: isPaused }">
       {{ isPaused ? '▶' : '⏸' }}
+    </button>
+
+    <!-- Orbit Toggle Button -->
+    <button @click="toggleOrbits" class="control-button orbit-toggle-button" :class="{ hidden: !showOrbits }">
+      {{ showOrbits ? '○' : '◉' }}
     </button>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
@@ -174,10 +187,8 @@ const planets = [
 </template>
 
 <style scoped>
-.play-pause-button {
+.control-button {
   position: absolute;
-  top: 20px;
-  right: 20px;
   z-index: 1000;
   width: 60px;
   height: 60px;
@@ -194,11 +205,25 @@ const planets = [
   transition: all 0.3s ease;
 }
 
-.play-pause-button:hover {
+.control-button:hover {
   transform: scale(1.1);
+}
+
+.play-pause-button {
+  top: 20px;
+  right: 20px;
 }
 
 .play-pause-button.paused {
   background: rgba(255, 100, 100, 0.2);
+}
+
+.orbit-toggle-button {
+  top: 90px;
+  right: 20px;
+}
+
+.orbit-toggle-button.hidden {
+  background: rgba(255, 255, 100, 0.2);
 }
 </style>
