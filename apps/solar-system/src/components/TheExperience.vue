@@ -136,7 +136,13 @@ const planets = [
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
-      <OrbitControls />
+      <OrbitControls 
+        :enable-damping="true" 
+        :damping-factor="0.05" 
+        :min-distance="0.5" 
+        :max-distance="1500" 
+        :zoom-speed="1.2"
+      />
       <RedShiftStars :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
