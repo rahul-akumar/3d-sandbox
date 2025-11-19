@@ -7,7 +7,7 @@ import AsteroidBelt from './AsteroidBelt.vue'
 const planets = [
   { name: 'Mercury', size: 0.4, distance: 10, color: '#8c8c8c', speed: 1.5 },
   { name: 'Venus', size: 0.9, distance: 15, color: '#e3bb76', speed: 1.2 },
-  { name: 'Earth', size: 1.0, distance: 20, color: '#2277ff', speed: 1.0 },
+  { name: 'Earth', size: 1.0, distance: 20, color: '#2277ff', speed: 1.0, texture: '/textures/earth.jpg' },
   { name: 'Mars', size: 0.5, distance: 25, color: '#df4020', speed: 0.8 },
   { name: 'Jupiter', size: 5.0, distance: 40, color: '#d8ca9d', speed: 0.4 },
   { name: 'Saturn', size: 4.0, distance: 60, color: '#fcd900', speed: 0.3 },
@@ -40,6 +40,7 @@ const planets = [
       :distance="planet.distance"
       :color="planet.color"
       :speed="planet.speed"
+      :texture="planet.texture"
     />
     
     <!-- Asteroid Belt between Mars and Jupiter -->

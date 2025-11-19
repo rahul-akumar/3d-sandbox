@@ -8,10 +8,20 @@ const props = defineProps<{
   distance: number
   color: string
   speed: number
+  texture?: string
 }>()
 
 const planetRef = ref<THREE.Mesh>()
 const angle = ref(Math.random() * Math.PI * 2)
+
+// Load texture if provided
+const textureMap = ref<THREE.Texture | null>(null)
+if (props.texture) {
+  const loader = new THREE.TextureLoader()
+  loader.load(props.texture, (texture) => {
+    textureMap.value = texture
+  })
+}
 
 const { onBeforeRender } = useLoop()
 
@@ -34,6 +44,13 @@ onBeforeRender(({ delta }) => {
   <!-- Planet -->
   <TresMesh ref="planetRef" :position="[distance, 0, 0]">
     <TresSphereGeometry :args="[props.size, 32, 32]" />
-    <TresMeshStandardMaterial :color="props.color" />
+    <TresMeshStandardMaterial 
+      v-if="textureMap" 
+      :map="textureMap" 
+    />
+    <TresMeshStandardMaterial 
+      v-else 
+      :color="props.color" 
+    />
   </TresMesh>
 </template>
