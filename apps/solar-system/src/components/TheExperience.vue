@@ -215,7 +215,7 @@ const planets = [
 <style scoped>
 .hud-bar {
   position: absolute;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  bottom: max(80px, calc(20px + env(safe-area-inset-bottom)));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -228,6 +228,13 @@ const planets = [
   backdrop-filter: blur(10px);
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Desktop - bring controls closer to bottom */
+@media (min-width: 768px) {
+  .hud-bar {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+  }
 }
 
 .control-button {
