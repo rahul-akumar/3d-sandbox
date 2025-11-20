@@ -215,7 +215,7 @@ const planets = [
 <style scoped>
 .hud-bar {
   position: absolute;
-  bottom: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
