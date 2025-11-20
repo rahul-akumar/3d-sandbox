@@ -28,7 +28,7 @@ onMounted(() => {
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ elapsed }) => {
-  if (starsMaterial.value) {
+  if (starsMaterial.value && starsMaterial.value.uniforms.uTime) {
     starsMaterial.value.uniforms.uTime.value = elapsed
   }
 })

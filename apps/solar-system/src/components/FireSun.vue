@@ -46,7 +46,7 @@ onBeforeRender(({ elapsed, delta }) => {
 })
 
 // Define the sun as a ref for GodRays if needed
-defineExpose({ sunRef })
+defineExpose({ sunRef: sunRef as any })
 
 const vertexShader = `
   varying vec2 vUv;
