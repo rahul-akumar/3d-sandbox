@@ -3,6 +3,7 @@ import { ref, inject, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
 import Moon from './Moon.vue'
+import SaturnRings from './SaturnRings.vue'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
@@ -26,6 +27,7 @@ const props = defineProps<{
   rotationSpeed?: number
   texture?: string
   moons?: MoonData[]
+  hasRings?: boolean
 }>()
 
 const planetRef = ref<THREE.Mesh>()
@@ -93,5 +95,12 @@ onBeforeRender(({ delta }) => {
     :rotation-speed="moon.rotationSpeed"
     :planet-position="planetPosition"
     :texture="moon.texture"
+  />
+
+  <!-- Rings (for Saturn) -->
+  <SaturnRings 
+    v-if="props.hasRings"
+    :planet-size="props.size"
+    :planet-position="planetPosition"
   />
 </template>

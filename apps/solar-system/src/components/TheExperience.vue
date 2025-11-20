@@ -118,6 +118,7 @@ const planets = [
     color: '#fcd900',
     speed: 0.06,
     texture: '/textures/saturn.jpg',
+    hasRings: true,
     moons: [
       { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.36, texture: '/textures/titan.jpg' },
       { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 0.3, },
@@ -194,7 +195,8 @@ const planets = [
 
       <!-- Planets -->
       <Planet v-for="planet in planets" :key="planet.name" :size="planet.size" :distance="planet.distance"
-        :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" />
+        :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" 
+        :has-rings="planet.hasRings" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />
