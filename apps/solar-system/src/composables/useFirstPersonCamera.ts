@@ -9,13 +9,14 @@ interface FirstPersonCameraOptions {
   initialTarget?: THREE.Vector3
 }
 
-export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
+export function useFirstPersonCamera(options: FirstPersonCameraOptions & { enabled?: Ref<boolean> }) {
   const {
     camera,
     moveSpeed = 50,
     lookSensitivity = 0.002,
     initialPosition = new THREE.Vector3(0, 150, 450),
     initialTarget = new THREE.Vector3(0, 0, 0),
+    enabled,
   } = options
 
   // Movement state
@@ -87,7 +88,7 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
 
   // Mouse look handlers
   const onMouseMove = (event: MouseEvent) => {
-    if (!isPointerLocked.value || !camera.value) return
+    if (!isPointerLocked.value || !camera.value || (enabled && !enabled.value)) return
 
     const movementX = event.movementX || 0
     const movementY = event.movementY || 0
@@ -105,6 +106,9 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
 
   // Pointer lock handlers
   const requestPointerLock = () => {
+    // Only request pointer lock if enabled
+    if (enabled && !enabled.value) return
+    
     const canvas = document.querySelector('canvas')
     if (canvas) {
       canvas.requestPointerLock()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted, watch } from 'vue'
 import { TresCanvas } from '@tresjs/core'
+import { OrbitControls } from '@tresjs/cientos'
 import { EffectComposerPmndrs, BloomPmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
@@ -48,14 +49,24 @@ const toggleStars = () => {
 // Refs for camera and scene
 const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
 const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
+const orbitControlsRef = ref<any>(null)
+
+// Camera mode state
+const isFlyMode = ref(false)
+const orbitTarget = ref(new THREE.Vector3(0, 0, 0)) // Default to sun
 
 // Help overlay visibility
 const showHelp = ref(false)
 
+// Fly mode camera position (separate from orbit mode)
+const flyModePosition = new THREE.Vector3(0, 100, 300)
+const orbitModePosition = new THREE.Vector3(0, 150, 450)
+
 // Setup camera controls and selection
-// Note: scene is optional in composables, raycasting will work once scene is available
 const { updateCamera, resetCamera, isPointerLocked } = useFirstPersonCamera({
   camera: cameraRef,
+  initialPosition: flyModePosition,
+  enabled: isFlyMode,
 })
 
 const { selectedBody, toggleFollow, updateFollow, isFollowing } = useCelestialSelection({
@@ -75,16 +86,60 @@ const { selectedBody, toggleFollow, updateFollow, isFollowing } = useCelestialSe
   },
 })
 
+// Toggle camera mode
+const toggleCameraMode = () => {
+  isFlyMode.value = !isFlyMode.value
+  
+  if (isFlyMode.value) {
+    // Switching to fly mode - set camera to fly position
+    if (cameraRef.value) {
+      cameraRef.value.position.copy(flyModePosition)
+      resetCamera()
+    }
+  } else {
+    // Switching to orbit mode - set camera to orbit position
+    // Exit pointer lock if active
+    if (document.pointerLockElement) {
+      document.exitPointerLock()
+    }
+    if (cameraRef.value) {
+      cameraRef.value.position.copy(orbitModePosition)
+    }
+  }
+}
+
 // Handle keyboard shortcuts
 const onKeyDown = (event: KeyboardEvent) => {
   if (event.code === 'KeyH') {
     showHelp.value = !showHelp.value
   } else if (event.code === 'KeyR') {
-    resetCamera()
+    if (isFlyMode.value) {
+      resetCamera()
+    } else {
+      // Reset to sun in orbit mode
+      orbitTarget.value.set(0, 0, 0)
+      if (cameraRef.value) {
+        cameraRef.value.position.copy(orbitModePosition)
+      }
+    }
   } else if (event.code === 'KeyF' && selectedBody.value) {
     toggleFollow()
   }
 }
+
+// Watch for selected body changes to update orbit target
+watch(selectedBody, (newBody) => {
+  if (newBody && !isFlyMode.value) {
+    // In orbit mode, change orbit target to selected body
+    const bodyPosition = newBody.object.getWorldPosition(new THREE.Vector3())
+    orbitTarget.value.copy(bodyPosition)
+    
+    // Update OrbitControls target if available
+    if (orbitControlsRef.value && orbitControlsRef.value.target) {
+      orbitControlsRef.value.target.copy(bodyPosition)
+    }
+  }
+})
 
 // Animation loop
 let lastTime = performance.now()
@@ -95,8 +150,19 @@ const animate = () => {
   const delta = (currentTime - lastTime) / 1000 // Convert to seconds
   lastTime = currentTime
 
-  updateCamera(delta)
-  updateFollow(delta)
+  // Only update fly camera if in fly mode
+  if (isFlyMode.value) {
+    updateCamera(delta)
+    // Follow mode in fly mode
+    updateFollow(delta)
+  } else if (isFollowing.value && selectedBody.value) {
+    // In orbit mode, continuously update orbit target to follow moving bodies
+    const bodyPosition = selectedBody.value.object.getWorldPosition(new THREE.Vector3())
+    orbitTarget.value.copy(bodyPosition)
+    if (orbitControlsRef.value && orbitControlsRef.value.target) {
+      orbitControlsRef.value.target.copy(bodyPosition)
+    }
+  }
 
   animationFrameId = requestAnimationFrame(animate)
 }
@@ -242,6 +308,11 @@ const planets = [
       <button @click="toggleStars" class="control-button star-toggle-button" :class="{ hidden: !showStars }">
         {{ showStars ? '★' : '☆' }}
       </button>
+      
+      <!-- Fly Mode Toggle Button -->
+      <button @click="toggleCameraMode" class="control-button fly-mode-button" :class="{ active: isFlyMode }">
+        {{ isFlyMode ? '✈' : '⚙' }}
+      </button>
     </div>
 
     <!-- Selected Body Info -->
@@ -256,16 +327,16 @@ const planets = [
       <div class="help-content">
         <h2>Controls</h2>
         <div class="help-section">
-          <h3>Movement</h3>
-          <div class="help-item"><kbd>W A S D</kbd> Move in look direction</div>
-          <div class="help-item"><kbd>Mouse</kbd> Look around (click to lock)</div>
-          <div class="help-item">Look up/down and move to fly vertically</div>
+          <h3>Camera Modes</h3>
+          <div class="help-item"><kbd>⚙/✈</kbd> Toggle Orbit/Fly mode</div>
+          <div class="help-item"><strong>Orbit:</strong> Drag to rotate, scroll to zoom</div>
+          <div class="help-item"><strong>Fly:</strong> WASD + mouse look (click to lock)</div>
         </div>
         <div class="help-section">
           <h3>Actions</h3>
           <div class="help-item"><kbd>Click</kbd> Select celestial body</div>
           <div class="help-item"><kbd>F</kbd> Toggle follow selected body</div>
-          <div class="help-item"><kbd>R</kbd> Reset camera to sun view</div>
+          <div class="help-item"><kbd>R</kbd> Reset camera</div>
         </div>
         <div class="help-section">
           <h3>Simulation</h3>
@@ -278,13 +349,29 @@ const planets = [
       </div>
     </div>
 
-    <!-- Pointer Lock Hint -->
-    <div v-if="!isPointerLocked" class="pointer-hint">
+    <!-- Pointer Lock Hint (only in fly mode) -->
+    <div v-if="isFlyMode && !isPointerLocked" class="pointer-hint">
       Click to enable free camera • Press <kbd>H</kbd> for controls
+    </div>
+    
+    <!-- Mode Indicator -->
+    <div class="mode-indicator">
+      {{ isFlyMode ? 'FLY MODE' : 'ORBIT MODE' }}
     </div>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
+      
+      <!-- OrbitControls (only active when not in fly mode) -->
+      <OrbitControls 
+        v-if="!isFlyMode"
+        ref="orbitControlsRef"
+        :enable-damping="true" 
+        :damping-factor="0.05" 
+        :min-distance="0.5" 
+        :max-distance="1500"
+        :target="orbitTarget"
+      />
       <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
@@ -375,6 +462,15 @@ const planets = [
 
 .star-toggle-button.hidden {
   background: rgba(150, 100, 255, 0.2);
+}
+
+.fly-mode-button {
+  background: rgba(100, 150, 255, 0.2);
+}
+
+.fly-mode-button.active {
+  background: rgba(255, 150, 50, 0.3);
+  border-color: rgba(255, 150, 50, 0.6);
 }
 
 /* Selected Body Info */
@@ -491,5 +587,22 @@ kbd {
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   font-size: 14px;
+}
+
+/* Mode Indicator */
+.mode-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 </style>
