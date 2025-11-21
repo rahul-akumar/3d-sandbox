@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, provide, onMounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import { TresCanvas } from '@tresjs/core'
-import { OrbitControls } from '@tresjs/cientos'
 import { EffectComposerPmndrs, BloomPmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
 import FireSun from './FireSun.vue'
 import RedShiftStars from './RedShiftStars.vue'
+import { useFirstPersonCamera } from '../composables/useFirstPersonCamera'
+import { useCelestialSelection } from '../composables/useCelestialSelection'
 import * as THREE from 'three'
 
 // Play/pause state
@@ -44,15 +45,79 @@ const toggleStars = () => {
   showStars.value = !showStars.value
 }
 
-// Ref for sun mesh
+// Refs for camera and scene
 const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
 const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
 
-// Configure camera to see all layers on mount
+// Help overlay visibility
+const showHelp = ref(false)
+
+// Setup camera controls and selection
+// Note: scene is optional in composables, raycasting will work once scene is available
+const { updateCamera, resetCamera, isPointerLocked } = useFirstPersonCamera({
+  camera: cameraRef,
+})
+
+const { selectedBody, focusOnSelected, updateFocus } = useCelestialSelection({
+  camera: cameraRef,
+  getScene: () => {
+    // Get scene from camera's parent hierarchy
+    if (cameraRef.value && cameraRef.value.parent) {
+      let current: any = cameraRef.value
+      while (current) {
+        if (current.type === 'Scene') {
+          return current as THREE.Scene
+        }
+        current = current.parent
+      }
+    }
+    return null
+  },
+})
+
+// Handle keyboard shortcuts
+const onKeyDown = (event: KeyboardEvent) => {
+  if (event.code === 'KeyH') {
+    showHelp.value = !showHelp.value
+  } else if (event.code === 'KeyR') {
+    resetCamera()
+  } else if (event.code === 'KeyF' && selectedBody.value) {
+    focusOnSelected()
+  }
+}
+
+// Animation loop
+let lastTime = performance.now()
+let animationFrameId: number
+
+const animate = () => {
+  const currentTime = performance.now()
+  const delta = (currentTime - lastTime) / 1000 // Convert to seconds
+  lastTime = currentTime
+
+  updateCamera(delta)
+  updateFocus(delta)
+
+  animationFrameId = requestAnimationFrame(animate)
+}
+
+// Configure camera to see all layers and setup controls on mount
 onMounted(() => {
   if (cameraRef.value) {
     cameraRef.value.layers.enableAll()
   }
+  document.addEventListener('keydown', onKeyDown)
+  
+  // Start animation loop
+  lastTime = performance.now()
+  animate()
+})
+
+onUnmounted(() => {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+  document.removeEventListener('keydown', onKeyDown)
 })
 
 const planets = [
@@ -179,10 +244,49 @@ const planets = [
       </button>
     </div>
 
+    <!-- Selected Body Info -->
+    <div v-if="selectedBody" class="selected-info">
+      <div class="selected-label">{{ selectedBody.type.toUpperCase() }}</div>
+      <div class="selected-name">{{ selectedBody.name }}</div>
+      <div class="selected-hint">Press F to focus</div>
+    </div>
+
+    <!-- Help Overlay -->
+    <div v-if="showHelp" class="help-overlay">
+      <div class="help-content">
+        <h2>Controls</h2>
+        <div class="help-section">
+          <h3>Movement</h3>
+          <div class="help-item"><kbd>W A S D</kbd> Move around</div>
+          <div class="help-item"><kbd>Space</kbd> Move up</div>
+          <div class="help-item"><kbd>Shift</kbd> Move down</div>
+          <div class="help-item"><kbd>Mouse</kbd> Look around (click to lock)</div>
+          <div class="help-item"><kbd>Scroll</kbd> Zoom to cursor</div>
+        </div>
+        <div class="help-section">
+          <h3>Actions</h3>
+          <div class="help-item"><kbd>Click</kbd> Select celestial body</div>
+          <div class="help-item"><kbd>F</kbd> Focus on selected body</div>
+          <div class="help-item"><kbd>R</kbd> Reset camera to sun view</div>
+        </div>
+        <div class="help-section">
+          <h3>Simulation</h3>
+          <div class="help-item"><kbd>⏸/▶</kbd> Play/Pause</div>
+          <div class="help-item"><kbd>Speed</kbd> Change simulation speed</div>
+          <div class="help-item"><kbd>○</kbd> Toggle orbits</div>
+          <div class="help-item"><kbd>★</kbd> Toggle stars</div>
+        </div>
+        <div class="help-close">Press <kbd>H</kbd> to close</div>
+      </div>
+    </div>
+
+    <!-- Pointer Lock Hint -->
+    <div v-if="!isPointerLocked" class="pointer-hint">
+      Click to enable free camera • Press <kbd>H</kbd> for controls
+    </div>
+
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
-      <OrbitControls :enable-damping="true" :damping-factor="0.05" :min-distance="0.5" :max-distance="1500"
-        :zoom-speed="1.2" />
       <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
@@ -194,7 +298,7 @@ const planets = [
       <FireSun ref="fireSunRef" :radius="5" :position="[0, 0, 0]" />
 
       <!-- Planets -->
-      <Planet v-for="planet in planets" :key="planet.name" :size="planet.size" :distance="planet.distance"
+      <Planet v-for="planet in planets" :key="planet.name" :name="planet.name" :size="planet.size" :distance="planet.distance"
         :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" 
         :has-rings="planet.hasRings" />
 
@@ -273,5 +377,121 @@ const planets = [
 
 .star-toggle-button.hidden {
   background: rgba(150, 100, 255, 0.2);
+}
+
+/* Selected Body Info */
+.selected-info {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
+  border-radius: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.selected-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 5px;
+}
+
+.selected-name {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.selected-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Help Overlay */
+.help-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.help-content {
+  max-width: 600px;
+  padding: 40px;
+  background: rgba(20, 20, 30, 0.9);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.help-content h2 {
+  margin-top: 0;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 32px;
+  color: #fff;
+}
+
+.help-content h3 {
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-item {
+  margin-bottom: 10px;
+  padding-left: 10px;
+  font-size: 16px;
+}
+
+.help-close {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+kbd {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-family: monospace;
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+/* Pointer Lock Hint */
+.pointer-hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 14px;
 }
 </style>
