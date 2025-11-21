@@ -151,9 +151,10 @@ const animate = () => {
   const delta = (currentTime - lastTime) / 1000 // Convert to seconds
   lastTime = currentTime
 
-  // Only update fly camera if in fly mode
+  // WASD camera movement works in both modes
+  updateCamera(delta)
+  
   if (isFlyMode.value) {
-    updateCamera(delta)
     // Follow mode in fly mode
     updateFollow(delta)
   } else if (isFollowing.value && selectedBody.value) {
@@ -337,10 +338,19 @@ const planets = [
       <div class="help-content">
         <h2>Controls</h2>
         <div class="help-section">
-          <h3>Camera Modes</h3>
+          <h3>Movement (Both Modes)</h3>
+          <div class="help-item"><kbd>W A S D</kbd> Move camera in look direction</div>
           <div class="help-item"><kbd>⚙/✈</kbd> Toggle Orbit/Fly mode</div>
-          <div class="help-item"><strong>Orbit:</strong> Drag to rotate, scroll to zoom</div>
-          <div class="help-item"><strong>Fly:</strong> WASD + mouse look (click to lock)</div>
+        </div>
+        <div class="help-section">
+          <h3>Orbit Mode (Default)</h3>
+          <div class="help-item"><kbd>Drag</kbd> Rotate around target</div>
+          <div class="help-item"><kbd>Scroll</kbd> Zoom in/out</div>
+        </div>
+        <div class="help-section">
+          <h3>Fly Mode</h3>
+          <div class="help-item"><kbd>Click</kbd> Lock mouse for free look</div>
+          <div class="help-item"><kbd>Mouse</kbd> Look around freely</div>
         </div>
         <div class="help-section">
           <h3>Actions</h3>
