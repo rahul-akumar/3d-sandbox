@@ -20,6 +20,7 @@ interface MoonData {
 }
 
 const props = defineProps<{
+  name: string
   size: number
   distance: number
   color: string
@@ -46,16 +47,24 @@ if (props.texture) {
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
-  if (planetRef.value && !isPaused.value) {
-    angle.value += props.speed * delta * simulationSpeed.value
-    const x = Math.cos(angle.value) * props.distance
-    const z = Math.sin(angle.value) * props.distance
-    planetRef.value.position.x = x
-    planetRef.value.position.z = z
-    planetPosition.value.set(x, 0, z)
+  if (planetRef.value) {
+    // Set userData for selection
+    if (!planetRef.value.userData.type) {
+      planetRef.value.userData.type = 'planet'
+      planetRef.value.userData.name = props.name
+    }
     
-    // On-axis rotation
-    planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
+    if (!isPaused.value) {
+      angle.value += props.speed * delta * simulationSpeed.value
+      const x = Math.cos(angle.value) * props.distance
+      const z = Math.sin(angle.value) * props.distance
+      planetRef.value.position.x = x
+      planetRef.value.position.z = z
+      planetPosition.value.set(x, 0, z)
+      
+      // On-axis rotation
+      planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
+    }
   }
 })
 </script>
@@ -88,6 +97,7 @@ onBeforeRender(({ delta }) => {
   <Moon 
     v-for="moon in props.moons" 
     :key="moon.name" 
+    :name="moon.name"
     :size="moon.size" 
     :distance="moon.distance" 
     :color="moon.color" 

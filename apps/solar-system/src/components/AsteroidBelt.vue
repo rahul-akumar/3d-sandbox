@@ -48,7 +48,7 @@ onBeforeRender(({ delta }) => {
 </script>
 
 <template>
-  <TresInstancedMesh ref="asteroidRef" :args="[undefined, undefined, props.count]" cast-shadow receive-shadow>
+  <TresInstancedMesh ref="asteroidRef" :args="[undefined, undefined, props.count]" receive-shadow>
     <TresDodecahedronGeometry :args="[1, 0]" />
     <TresMeshStandardMaterial color="#888" :roughness="0.8" :metalness="0.2" />
   </TresInstancedMesh>

@@ -31,6 +31,9 @@ onMounted(() => {
   if (sunRef.value) {
     // Place sun on bloom layer 1
     sunRef.value.layers.set(1)
+    // Set userData for selection
+    sunRef.value.userData.type = 'sun'
+    sunRef.value.userData.name = 'Sun'
   }
 })
 
