@@ -113,6 +113,9 @@ const toggleCameraMode = () => {
 const onKeyDown = (event: KeyboardEvent) => {
   if (event.code === 'KeyH') {
     showHelp.value = !showHelp.value
+  } else if (event.code === 'Space') {
+    event.preventDefault() // Prevent page scroll
+    togglePause()
   } else if (event.code === 'KeyR') {
     if (isFlyMode.value) {
       resetCamera()
@@ -360,7 +363,7 @@ const planets = [
         </div>
         <div class="help-section">
           <h3>Simulation</h3>
-          <div class="help-item"><kbd>⏸/▶</kbd> Play/Pause</div>
+          <div class="help-item"><kbd>Space</kbd> or <kbd>⏸/▶</kbd> Play/Pause</div>
           <div class="help-item"><kbd>Speed</kbd> Change simulation speed</div>
           <div class="help-item"><kbd>○</kbd> Toggle orbits</div>
           <div class="help-item"><kbd>★</kbd> Toggle stars</div>
