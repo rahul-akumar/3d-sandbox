@@ -92,19 +92,13 @@ const toggleCameraMode = () => {
   isFlyMode.value = !isFlyMode.value
 
   if (isFlyMode.value) {
-    // Switching to fly mode - set camera to fly position
-    if (cameraRef.value) {
-      cameraRef.value.position.copy(flyModePosition)
-      resetCamera()
-    }
+    // Switching to fly mode - preserve current camera position and rotation
+    // Do NOT reset camera rotation - it should start exactly where orbit mode was
   } else {
-    // Switching to orbit mode - set camera to orbit position
+    // Switching to orbit mode
     // Exit pointer lock if active
     if (document.pointerLockElement) {
       document.exitPointerLock()
-    }
-    if (cameraRef.value) {
-      cameraRef.value.position.copy(orbitModePosition)
     }
   }
 }
