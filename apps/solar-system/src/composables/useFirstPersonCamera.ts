@@ -7,8 +7,6 @@ interface FirstPersonCameraOptions {
   lookSensitivity?: number
   initialPosition?: THREE.Vector3
   initialTarget?: THREE.Vector3
-  zoomSpeed?: number
-  scene?: THREE.Scene
 }
 
 export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
@@ -18,8 +16,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     lookSensitivity = 0.002,
     initialPosition = new THREE.Vector3(0, 150, 450),
     initialTarget = new THREE.Vector3(0, 0, 0),
-    zoomSpeed = 50,
-    scene,
   } = options
 
   // Movement state
@@ -28,15 +24,11 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     backward: false,
     left: false,
     right: false,
-    up: false,
-    down: false,
   })
 
   // Mouse look state
   const isPointerLocked = ref(false)
   const euler = new THREE.Euler(0, 0, 0, 'YXZ')
-  const raycaster = new THREE.Raycaster()
-  const mousePosition = new THREE.Vector2()
 
   // Initialize camera rotation to look at target
   const initializeCameraRotation = () => {
@@ -73,14 +65,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
       case 'KeyD':
         keys.value.right = true
         break
-      case 'Space':
-        keys.value.up = true
-        event.preventDefault()
-        break
-      case 'ShiftLeft':
-      case 'ShiftRight':
-        keys.value.down = true
-        break
     }
   }
 
@@ -97,13 +81,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
         break
       case 'KeyD':
         keys.value.right = false
-        break
-      case 'Space':
-        keys.value.up = false
-        break
-      case 'ShiftLeft':
-      case 'ShiftRight':
-        keys.value.down = false
         break
     }
   }
@@ -125,48 +102,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     camera.value.quaternion.setFromEuler(euler)
   }
 
-  // Track mouse position for zoom-to-cursor
-  const onMouseMovePosition = (event: MouseEvent) => {
-    const canvas = event.target as HTMLCanvasElement
-    const rect = canvas.getBoundingClientRect()
-    mousePosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-    mousePosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-  }
-
-  // Zoom to cursor with raycasting
-  const onWheel = (event: WheelEvent) => {
-    if (!camera.value) return
-    event.preventDefault()
-
-    const zoomDirection = event.deltaY > 0 ? 1 : -1
-    const zoomAmount = zoomDirection * zoomSpeed
-
-    // If scene is provided, try to raycast
-    if (scene) {
-      raycaster.setFromCamera(mousePosition, camera.value)
-      const intersects = raycaster.ray.intersectPlane(
-        new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
-        new THREE.Vector3()
-      )
-
-      if (intersects) {
-        // Zoom toward the intersection point
-        const direction = new THREE.Vector3()
-        direction.subVectors(intersects, camera.value.position).normalize()
-        camera.value.position.addScaledVector(direction, -zoomAmount)
-      } else {
-        // Fallback: zoom along camera forward direction
-        const forward = new THREE.Vector3(0, 0, -1)
-        forward.applyQuaternion(camera.value.quaternion)
-        camera.value.position.addScaledVector(forward, -zoomAmount)
-      }
-    } else {
-      // Fallback: zoom along camera forward direction
-      const forward = new THREE.Vector3(0, 0, -1)
-      forward.applyQuaternion(camera.value.quaternion)
-      camera.value.position.addScaledVector(forward, -zoomAmount)
-    }
-  }
 
   // Pointer lock handlers
   const requestPointerLock = () => {
@@ -188,21 +123,15 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     const forward = new THREE.Vector3(0, 0, -1)
     const right = new THREE.Vector3(1, 0, 0)
 
+    // Apply camera rotation to get actual forward and right vectors
     forward.applyQuaternion(camera.value.quaternion)
     right.applyQuaternion(camera.value.quaternion)
 
-    // Flatten forward/right for WASD (ignore vertical component)
-    forward.y = 0
-    forward.normalize()
-    right.y = 0
-    right.normalize()
-
+    // Move in the direction the camera is facing (including vertical)
     if (keys.value.forward) camera.value.position.addScaledVector(forward, velocity)
     if (keys.value.backward) camera.value.position.addScaledVector(forward, -velocity)
     if (keys.value.left) camera.value.position.addScaledVector(right, -velocity)
     if (keys.value.right) camera.value.position.addScaledVector(right, velocity)
-    if (keys.value.up) camera.value.position.y += velocity
-    if (keys.value.down) camera.value.position.y -= velocity
   }
 
   // Setup event listeners
@@ -212,8 +141,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('keyup', onKeyUp)
     document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mousemove', onMouseMovePosition)
-    document.addEventListener('wheel', onWheel, { passive: false })
     document.addEventListener('pointerlockchange', onPointerLockChange)
 
     // Request pointer lock on canvas click
@@ -228,8 +155,6 @@ export function useFirstPersonCamera(options: FirstPersonCameraOptions) {
     document.removeEventListener('keydown', onKeyDown)
     document.removeEventListener('keyup', onKeyUp)
     document.removeEventListener('mousemove', onMouseMove)
-    document.removeEventListener('mousemove', onMouseMovePosition)
-    document.removeEventListener('wheel', onWheel)
     document.removeEventListener('pointerlockchange', onPointerLockChange)
 
     const canvas = document.querySelector('canvas')

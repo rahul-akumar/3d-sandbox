@@ -58,7 +58,7 @@ const { updateCamera, resetCamera, isPointerLocked } = useFirstPersonCamera({
   camera: cameraRef,
 })
 
-const { selectedBody, focusOnSelected, updateFocus } = useCelestialSelection({
+const { selectedBody, toggleFollow, updateFollow, isFollowing } = useCelestialSelection({
   camera: cameraRef,
   getScene: () => {
     // Get scene from camera's parent hierarchy
@@ -82,7 +82,7 @@ const onKeyDown = (event: KeyboardEvent) => {
   } else if (event.code === 'KeyR') {
     resetCamera()
   } else if (event.code === 'KeyF' && selectedBody.value) {
-    focusOnSelected()
+    toggleFollow()
   }
 }
 
@@ -96,7 +96,7 @@ const animate = () => {
   lastTime = currentTime
 
   updateCamera(delta)
-  updateFocus(delta)
+  updateFollow(delta)
 
   animationFrameId = requestAnimationFrame(animate)
 }
@@ -248,7 +248,7 @@ const planets = [
     <div v-if="selectedBody" class="selected-info">
       <div class="selected-label">{{ selectedBody.type.toUpperCase() }}</div>
       <div class="selected-name">{{ selectedBody.name }}</div>
-      <div class="selected-hint">Press F to focus</div>
+      <div class="selected-hint">Press F to {{ isFollowing ? 'stop following' : 'follow' }}</div>
     </div>
 
     <!-- Help Overlay -->
@@ -257,16 +257,14 @@ const planets = [
         <h2>Controls</h2>
         <div class="help-section">
           <h3>Movement</h3>
-          <div class="help-item"><kbd>W A S D</kbd> Move around</div>
-          <div class="help-item"><kbd>Space</kbd> Move up</div>
-          <div class="help-item"><kbd>Shift</kbd> Move down</div>
+          <div class="help-item"><kbd>W A S D</kbd> Move in look direction</div>
           <div class="help-item"><kbd>Mouse</kbd> Look around (click to lock)</div>
-          <div class="help-item"><kbd>Scroll</kbd> Zoom to cursor</div>
+          <div class="help-item">Look up/down and move to fly vertically</div>
         </div>
         <div class="help-section">
           <h3>Actions</h3>
           <div class="help-item"><kbd>Click</kbd> Select celestial body</div>
-          <div class="help-item"><kbd>F</kbd> Focus on selected body</div>
+          <div class="help-item"><kbd>F</kbd> Toggle follow selected body</div>
           <div class="help-item"><kbd>R</kbd> Reset camera to sun view</div>
         </div>
         <div class="help-section">
