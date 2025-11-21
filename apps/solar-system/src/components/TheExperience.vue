@@ -150,7 +150,7 @@ const animate = () => {
 
   // WASD camera movement works in both modes
   updateCamera(delta)
-  
+
   if (isFlyMode.value) {
     // Follow mode in fly mode
     updateFollow(delta)
@@ -387,7 +387,8 @@ const planets = [
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
       <!-- Sun Light with Shadows -->
-      <TresPointLight ref="sunLightRef" :position="[0, 0, 0]" :intensity="1000" :distance="1000" :decay="1.2" cast-shadow />
+      <TresPointLight ref="sunLightRef" :position="[0, 0, 0]" :intensity="1000" :distance="1000" :decay="1.2"
+        cast-shadow />
 
       <!-- Fire Sun -->
       <FireSun ref="fireSunRef" :radius="5" :position="[0, 0, 0]" />
@@ -611,8 +612,9 @@ kbd {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.8);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: normal;
   letter-spacing: 1px;
 }
 </style>
