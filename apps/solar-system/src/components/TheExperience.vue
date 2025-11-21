@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted, watch } from 'vue'
+import { ref, provide, onMounted, onUnmounted, watch, watchEffect } from 'vue'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls } from '@tresjs/cientos'
 import { EffectComposerPmndrs, BloomPmndrs } from '@tresjs/post-processing'
@@ -50,6 +50,7 @@ const toggleStars = () => {
 const fireSunRef = ref<InstanceType<typeof FireSun> | null>(null)
 const cameraRef = ref<THREE.PerspectiveCamera | null>(null)
 const orbitControlsRef = ref<any>(null)
+const sunLightRef = ref<THREE.PointLight | null>(null)
 
 // Camera mode state
 const isFlyMode = ref(false)
@@ -166,6 +167,15 @@ const animate = () => {
 
   animationFrameId = requestAnimationFrame(animate)
 }
+
+// Configure shadow quality when light is ready
+watchEffect(() => {
+  if (sunLightRef.value) {
+    sunLightRef.value.shadow.mapSize.width = 2048
+    sunLightRef.value.shadow.mapSize.height = 2048
+    sunLightRef.value.shadow.bias = -0.0001
+  }
+})
 
 // Configure camera to see all layers and setup controls on mount
 onMounted(() => {
@@ -370,7 +380,7 @@ const planets = [
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
       <!-- Sun Light with Shadows -->
-      <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="1000" :decay="1.2" cast-shadow />
+      <TresPointLight ref="sunLightRef" :position="[0, 0, 0]" :intensity="1000" :distance="1000" :decay="1.2" cast-shadow />
 
       <!-- Fire Sun -->
       <FireSun ref="fireSunRef" :radius="5" :position="[0, 0, 0]" />
