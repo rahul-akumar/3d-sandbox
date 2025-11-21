@@ -89,7 +89,7 @@ const { selectedBody, toggleFollow, updateFollow, isFollowing } = useCelestialSe
 // Toggle camera mode
 const toggleCameraMode = () => {
   isFlyMode.value = !isFlyMode.value
-  
+
   if (isFlyMode.value) {
     // Switching to fly mode - set camera to fly position
     if (cameraRef.value) {
@@ -133,7 +133,7 @@ watch(selectedBody, (newBody) => {
     // In orbit mode, change orbit target to selected body
     const bodyPosition = newBody.object.getWorldPosition(new THREE.Vector3())
     orbitTarget.value.copy(bodyPosition)
-    
+
     // Update OrbitControls target if available
     if (orbitControlsRef.value && orbitControlsRef.value.target) {
       orbitControlsRef.value.target.copy(bodyPosition)
@@ -173,7 +173,7 @@ onMounted(() => {
     cameraRef.value.layers.enableAll()
   }
   document.addEventListener('keydown', onKeyDown)
-  
+
   // Start animation loop
   lastTime = performance.now()
   animate()
@@ -308,7 +308,7 @@ const planets = [
       <button @click="toggleStars" class="control-button star-toggle-button" :class="{ hidden: !showStars }">
         {{ showStars ? '★' : '☆' }}
       </button>
-      
+
       <!-- Fly Mode Toggle Button -->
       <button @click="toggleCameraMode" class="control-button fly-mode-button" :class="{ active: isFlyMode }">
         {{ isFlyMode ? '✈' : '⚙' }}
@@ -353,7 +353,7 @@ const planets = [
     <div v-if="isFlyMode && !isPointerLocked" class="pointer-hint">
       Click to enable free camera • Press <kbd>H</kbd> for controls
     </div>
-    
+
     <!-- Mode Indicator -->
     <div class="mode-indicator">
       {{ isFlyMode ? 'FLY MODE' : 'ORBIT MODE' }}
@@ -361,31 +361,24 @@ const planets = [
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
-      
+
       <!-- OrbitControls (only active when not in fly mode) -->
-      <OrbitControls 
-        v-if="!isFlyMode"
-        ref="orbitControlsRef"
-        :enable-damping="true" 
-        :damping-factor="0.05" 
-        :min-distance="0.5" 
-        :max-distance="1500"
-        :target="orbitTarget"
-      />
+      <OrbitControls v-if="!isFlyMode" ref="orbitControlsRef" :enable-damping="true" :damping-factor="0.05"
+        :min-distance="0.5" :max-distance="1500" :target="orbitTarget" />
       <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
 
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
       <!-- Sun Light with Shadows -->
-      <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="700" :decay="2" cast-shadow />
+      <TresPointLight :position="[0, 0, 0]" :intensity="1000" :distance="1000" :decay="1.2" cast-shadow />
 
       <!-- Fire Sun -->
       <FireSun ref="fireSunRef" :radius="5" :position="[0, 0, 0]" />
 
       <!-- Planets -->
-      <Planet v-for="planet in planets" :key="planet.name" :name="planet.name" :size="planet.size" :distance="planet.distance"
-        :color="planet.color" :speed="planet.speed" :texture="planet.texture" :moons="planet.moons" 
-        :has-rings="planet.hasRings" />
+      <Planet v-for="planet in planets" :key="planet.name" :name="planet.name" :size="planet.size"
+        :distance="planet.distance" :color="planet.color" :speed="planet.speed" :texture="planet.texture"
+        :moons="planet.moons" :has-rings="planet.hasRings" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />
