@@ -29,11 +29,15 @@ const props = defineProps<{
   texture?: string
   moons?: MoonData[]
   hasRings?: boolean
+  axialTilt?: number // in degrees
 }>()
 
 const planetRef = ref<THREE.Mesh>()
 const angle = ref(Math.random() * Math.PI * 2)
 const planetPosition = ref(new THREE.Vector3(props.distance, 0, 0))
+
+// Convert axial tilt from degrees to radians
+const axialTiltRadians = (props.axialTilt || 0) * (Math.PI / 180)
 
 // Load texture if provided
 const textureMap = ref<THREE.Texture | null>(null)
@@ -54,6 +58,9 @@ onBeforeRender(({ delta }) => {
       planetRef.value.userData.name = props.name
     }
     
+    // Apply axial tilt around X axis (tilts the planet's equator)
+    planetRef.value.rotation.x = axialTiltRadians
+    
     if (!isPaused.value) {
       angle.value += props.speed * delta * simulationSpeed.value
       const x = Math.cos(angle.value) * props.distance
@@ -62,7 +69,7 @@ onBeforeRender(({ delta }) => {
       planetRef.value.position.z = z
       planetPosition.value.set(x, 0, z)
       
-      // On-axis rotation
+      // On-axis rotation (around tilted axis)
       planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
     }
   }
@@ -104,6 +111,7 @@ onBeforeRender(({ delta }) => {
     :speed="moon.speed" 
     :rotation-speed="moon.rotationSpeed"
     :planet-position="planetPosition"
+    :planet-axial-tilt="axialTiltRadians"
     :texture="moon.texture"
   />
 
@@ -112,5 +120,6 @@ onBeforeRender(({ delta }) => {
     v-if="props.hasRings"
     :planet-size="props.size"
     :planet-position="planetPosition"
+    :planet-axial-tilt="axialTiltRadians"
   />
 </template>

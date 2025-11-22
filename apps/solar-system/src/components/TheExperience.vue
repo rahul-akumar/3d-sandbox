@@ -202,6 +202,7 @@ const planets = [
     color: '#8c8c8c',
     speed: 0.3,
     texture: '/textures/mercury.jpg',
+    axialTilt: 0.034, // degrees
     moons: []
   },
   {
@@ -211,6 +212,7 @@ const planets = [
     color: '#e3bb76',
     speed: 0.25,
     texture: '/textures/venus.jpg',
+    axialTilt: 177.4, // degrees - retrograde rotation
     moons: []
   },
   {
@@ -220,6 +222,7 @@ const planets = [
     color: '#2277ff',
     speed: 0.2,
     texture: '/textures/earth.jpg',
+    axialTilt: 23.44, // degrees
     moons: [
       { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 0.5, texture: '/textures/moon.jpg' }
     ]
@@ -231,6 +234,7 @@ const planets = [
     color: '#df4020',
     speed: 0.16,
     texture: '/textures/mars.jpg',
+    axialTilt: 25.19, // degrees
     moons: [
       { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 0.8, texture: '/textures/phobos.jpg' },
       { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 0.6, texture: '/textures/deimos.jpg' }
@@ -243,6 +247,7 @@ const planets = [
     color: '#d8ca9d',
     speed: 0.08,
     texture: '/textures/jupiter.jpg',
+    axialTilt: 3.13, // degrees
     moons: [
       { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 0.5 },
       { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 0.4 },
@@ -257,6 +262,7 @@ const planets = [
     color: '#fcd900',
     speed: 0.06,
     texture: '/textures/saturn.jpg',
+    axialTilt: 26.73, // degrees
     hasRings: true,
     moons: [
       { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.36, texture: '/textures/titan.jpg' },
@@ -271,6 +277,7 @@ const planets = [
     color: '#4fd0e7',
     speed: 0.04,
     texture: '/textures/uranus.jpg',
+    axialTilt: 97.77, // degrees - rotates on its side!
     moons: [
       { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 0.6 },
       { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 0.5 },
@@ -286,6 +293,7 @@ const planets = [
     color: '#4b70dd',
     speed: 0.02,
     texture: '/textures/neptune.jpg',
+    axialTilt: 28.32, // degrees
     moons: [
       { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 0.4, texture: '/textures/triton.jpg' }
     ]
@@ -396,7 +404,7 @@ const planets = [
       <!-- Planets -->
       <Planet v-for="planet in planets" :key="planet.name" :name="planet.name" :size="planet.size"
         :distance="planet.distance" :color="planet.color" :speed="planet.speed" :texture="planet.texture"
-        :moons="planet.moons" :has-rings="planet.hasRings" />
+        :moons="planet.moons" :has-rings="planet.hasRings" :axial-tilt="planet.axialTilt" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />

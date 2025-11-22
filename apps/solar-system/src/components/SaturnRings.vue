@@ -6,6 +6,7 @@ import * as THREE from 'three'
 const props = defineProps<{
   planetSize: number
   planetPosition: THREE.Vector3
+  planetAxialTilt: number // in radians
 }>()
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
@@ -13,9 +14,6 @@ const simulationSpeed = inject<Ref<number>>('simulationSpeed', ref(1))
 
 // Ring group ref
 const ringGroupRef = ref<THREE.Group>()
-
-// Saturn's axial tilt: 26.73° (0.4665 radians)
-const SATURN_TILT = 0.4665
 
 // Ring band definitions based on Saturn radii (planet size is 4.0)
 // Distances are in relation to planet size
@@ -147,8 +145,8 @@ onMounted(() => {
       ringMeshes.value.push(ringMesh)
     })
 
-    // Apply Saturn's axial tilt
-    ringGroupRef.value.rotation.x = SATURN_TILT
+    // Apply planet's axial tilt to rings
+    ringGroupRef.value.rotation.x = props.planetAxialTilt
   }
 })
 
