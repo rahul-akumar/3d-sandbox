@@ -7,7 +7,7 @@ import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
 import FireSun from './FireSun.vue'
-import RedShiftStars from './RedShiftStars.vue'
+import StarfieldSkybox from './StarfieldSkybox.vue'
 import { useFirstPersonCamera } from '../composables/useFirstPersonCamera'
 import { useCelestialSelection } from '../composables/useCelestialSelection'
 import * as THREE from 'three'
@@ -401,12 +401,18 @@ const planets = [
     </div>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
-      <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" />
+      <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" :far="10000" />
 
       <!-- OrbitControls (only active when not in fly mode) -->
       <OrbitControls v-if="!isFlyMode" ref="orbitControlsRef" :enable-damping="true" :damping-factor="0.05"
         :min-distance="0.5" :max-distance="1500" :target="orbitTarget" />
-      <RedShiftStars v-if="showStars" :count="15000" :radius="1200" :depth="800" :size="1.5" />
+      <StarfieldSkybox 
+        v-if="showStars" 
+        texture="/textures/starmap.jpg" 
+        :radius="2000"
+        :rotation-y="Math.PI"
+        :rotation-speed="0.00001"
+      />
 
       <!-- Reduced ambient light to see shadows better -->
       <TresAmbientLight :intensity="0.05" />
