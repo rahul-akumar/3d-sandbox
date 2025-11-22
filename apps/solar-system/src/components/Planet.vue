@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, inject, type Ref } from 'vue'
+import { ref, inject, computed, onMounted, markRaw, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
 import Moon from './Moon.vue'
 import SaturnRings from './SaturnRings.vue'
+import { calculateOrbitalPosition, generateEllipsePoints, type OrbitalElements } from '../utils/orbitalMechanics'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
@@ -17,6 +18,8 @@ interface MoonData {
   speed: number
   rotationSpeed?: number
   texture?: string
+  eccentricity?: number
+  periapsisArgument?: number
 }
 
 const props = defineProps<{
@@ -30,11 +33,40 @@ const props = defineProps<{
   moons?: MoonData[]
   hasRings?: boolean
   axialTilt?: number // in degrees
+  eccentricity?: number // orbital eccentricity (0 = circle, 0-1 = ellipse)
+  periapsisArgument?: number // argument of periapsis in degrees
 }>()
 
 const planetRef = ref<THREE.Mesh>()
-const angle = ref(Math.random() * Math.PI * 2)
+
+// Time accumulator for orbital calculations
+const orbitTime = ref(0)
+
+// Create orbital elements from props
+const orbitalElements = computed<OrbitalElements>(() => ({
+  semiMajorAxis: props.distance,
+  eccentricity: props.eccentricity ?? 0,
+  periapsisArgument: ((props.periapsisArgument ?? 0) * Math.PI) / 180,
+  meanAnomalyAtEpoch: Math.random() * Math.PI * 2, // Random start position
+}))
+
 const planetPosition = ref(new THREE.Vector3(props.distance, 0, 0))
+
+// Create orbit line
+const orbitLine = ref<THREE.Line | null>(null)
+
+onMounted(() => {
+  // Create the orbit line on mount
+  const points = generateEllipsePoints(orbitalElements.value, 128)
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
+  geometry.computeBoundingSphere() // Ensure bounding sphere is computed
+  const material = new THREE.LineBasicMaterial({ color: 0x444444 })
+  const line = new THREE.Line(geometry, material)
+  // Disable frustum culling so the line doesn't disappear when camera is inside the orbit
+  line.frustumCulled = false
+  // Use markRaw to prevent Vue reactivity from wrapping Three.js objects
+  orbitLine.value = markRaw(line)
+})
 
 // Convert axial tilt from degrees to radians
 const axialTiltRadians = (props.axialTilt || 0) * (Math.PI / 180)
@@ -62,12 +94,18 @@ onBeforeRender(({ delta }) => {
     planetRef.value.rotation.x = axialTiltRadians
     
     if (!isPaused.value) {
-      angle.value += props.speed * delta * simulationSpeed.value
-      const x = Math.cos(angle.value) * props.distance
-      const z = Math.sin(angle.value) * props.distance
-      planetRef.value.position.x = x
-      planetRef.value.position.z = z
-      planetPosition.value.set(x, 0, z)
+      // Update orbit time (controls position in ellipse)
+      orbitTime.value += props.speed * delta * simulationSpeed.value
+      
+      // Calculate position using Kepler's laws
+      const position = calculateOrbitalPosition(
+        orbitalElements.value,
+        orbitTime.value,
+        1 // speedMultiplier is already in orbitTime
+      )
+      
+      planetRef.value.position.copy(position)
+      planetPosition.value.copy(position)
       
       // On-axis rotation (around tilted axis)
       planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
@@ -77,11 +115,8 @@ onBeforeRender(({ delta }) => {
 </script>
 
 <template>
-  <!-- Orbit Path -->
-  <TresMesh v-if="showOrbits" :rotation-x="-Math.PI / 2">
-    <TresRingGeometry :args="[props.distance - 0.05, props.distance + 0.05, 64]" />
-    <TresMeshBasicMaterial color="#444" :side="THREE.DoubleSide" />
-  </TresMesh>
+  <!-- Orbit Path (Ellipse) -->
+  <primitive v-if="showOrbits && orbitLine" :object="orbitLine" />
 
   <!-- Planet -->
   <TresMesh ref="planetRef" :position="[distance, 0, 0]" cast-shadow receive-shadow>
@@ -113,6 +148,8 @@ onBeforeRender(({ delta }) => {
     :planet-position="planetPosition"
     :planet-axial-tilt="axialTiltRadians"
     :texture="moon.texture"
+    :eccentricity="moon.eccentricity"
+    :periapsis-argument="moon.periapsisArgument"
   />
 
   <!-- Rings (for Saturn) -->

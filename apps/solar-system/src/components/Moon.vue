@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, inject, type Ref } from 'vue'
+import { ref, inject, computed, onMounted, watch, markRaw, type Ref } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
+import { calculateOrbitalPosition, generateEllipsePoints, type OrbitalElements } from '../utils/orbitalMechanics'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
@@ -17,11 +18,62 @@ const props = defineProps<{
   planetPosition: THREE.Vector3
   planetAxialTilt: number // in radians
   texture?: string
+  eccentricity?: number // orbital eccentricity
+  periapsisArgument?: number // argument of periapsis in degrees
 }>()
 
 const moonRef = ref<THREE.Mesh>()
-const moonOrbitRef = ref<THREE.Mesh>()
-const angle = ref(Math.random() * Math.PI * 2)
+
+// Time accumulator for orbital calculations
+const orbitTime = ref(0)
+
+// Create orbital elements from props
+const orbitalElements = computed<OrbitalElements>(() => ({
+  semiMajorAxis: props.distance,
+  eccentricity: props.eccentricity ?? 0,
+  periapsisArgument: ((props.periapsisArgument ?? 0) * Math.PI) / 180,
+  meanAnomalyAtEpoch: Math.random() * Math.PI * 2,
+}))
+
+// Create orbit line
+const orbitLine = ref<THREE.Line | null>(null)
+
+const updateOrbitLine = () => {
+  if (!orbitLine.value) return
+  
+  const points = generateEllipsePoints(orbitalElements.value, 64)
+  // Transform points to planet's position and apply axial tilt
+  const transformedPoints = points.map(point => {
+    const tiltedY = point.y * Math.cos(props.planetAxialTilt) - point.z * Math.sin(props.planetAxialTilt)
+    const tiltedZ = point.y * Math.sin(props.planetAxialTilt) + point.z * Math.cos(props.planetAxialTilt)
+    
+    return new THREE.Vector3(
+      props.planetPosition.x + point.x,
+      props.planetPosition.y + tiltedY,
+      props.planetPosition.z + tiltedZ
+    )
+  })
+  
+  orbitLine.value.geometry.setFromPoints(transformedPoints)
+  orbitLine.value.geometry.computeBoundingSphere() // Recompute after updating points
+}
+
+onMounted(() => {
+  // Create the orbit line on mount
+  const points = generateEllipsePoints(orbitalElements.value, 64)
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
+  geometry.computeBoundingSphere() // Ensure bounding sphere is computed
+  const material = new THREE.LineBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 })
+  const line = new THREE.Line(geometry, material)
+  // Disable frustum culling so the line doesn't disappear when camera is close
+  line.frustumCulled = false
+  // Use markRaw to prevent Vue reactivity from wrapping Three.js objects
+  orbitLine.value = markRaw(line)
+  updateOrbitLine()
+})
+
+// Update orbit line when planet moves
+watch(() => props.planetPosition, updateOrbitLine, { deep: true })
 
 // Load texture if provided
 const textureMap = ref<THREE.Texture | null>(null)
@@ -43,21 +95,23 @@ onBeforeRender(({ delta }) => {
     }
     
     if (!isPaused.value) {
-      angle.value += props.speed * delta * simulationSpeed.value
+      // Update orbit time
+      orbitTime.value += props.speed * delta * simulationSpeed.value
       
-      // Calculate position in planet's equatorial plane
-      // Start with orbit in XZ plane
-      const localX = Math.cos(angle.value) * props.distance
-      const localY = 0
-      const localZ = Math.sin(angle.value) * props.distance
+      // Calculate position using Kepler's laws (in local space)
+      const localPosition = calculateOrbitalPosition(
+        orbitalElements.value,
+        orbitTime.value,
+        1
+      )
       
-      // Apply planet's axial tilt rotation around Z axis
+      // Apply planet's axial tilt rotation around X axis
       // This tilts the moon's orbital plane to match the planet's equatorial plane
-      const tiltedY = localY * Math.cos(props.planetAxialTilt) - localZ * Math.sin(props.planetAxialTilt)
-      const tiltedZ = localY * Math.sin(props.planetAxialTilt) + localZ * Math.cos(props.planetAxialTilt)
+      const tiltedY = localPosition.y * Math.cos(props.planetAxialTilt) - localPosition.z * Math.sin(props.planetAxialTilt)
+      const tiltedZ = localPosition.y * Math.sin(props.planetAxialTilt) + localPosition.z * Math.cos(props.planetAxialTilt)
       
       // Set final position relative to planet
-      moonRef.value.position.x = props.planetPosition.x + localX
+      moonRef.value.position.x = props.planetPosition.x + localPosition.x
       moonRef.value.position.y = props.planetPosition.y + tiltedY
       moonRef.value.position.z = props.planetPosition.z + tiltedZ
       
@@ -65,23 +119,13 @@ onBeforeRender(({ delta }) => {
       moonRef.value.rotation.y += (props.rotationSpeed || 0.8) * delta * simulationSpeed.value
     }
   }
-  
-  // Update orbit ring to follow planet and match tilt
-  if (moonOrbitRef.value && props.planetPosition) {
-    moonOrbitRef.value.position.copy(props.planetPosition)
-    // Rotation around X axis: -PI/2 to make horizontal, plus the planet's tilt
-    moonOrbitRef.value.rotation.set(-Math.PI / 2 + props.planetAxialTilt, 0, 0)
-  }
 })
 
 </script>
 
 <template>
-  <!-- Moon Orbit Path (tilted to match planet's equatorial plane) -->
-  <TresMesh v-if="showOrbits" ref="moonOrbitRef">
-    <TresRingGeometry :args="[props.distance - 0.02, props.distance + 0.02, 32]" />
-    <TresMeshBasicMaterial color="#666" :side="THREE.DoubleSide" :transparent="true" :opacity="0.3" />
-  </TresMesh>
+  <!-- Moon Orbit Path (Ellipse, tilted to match planet's equatorial plane) -->
+  <primitive v-if="showOrbits && orbitLine" :object="orbitLine" />
 
   <!-- Moon -->
   <TresMesh ref="moonRef" cast-shadow receive-shadow>
