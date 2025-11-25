@@ -24,6 +24,15 @@ interface MoonData {
   periapsisArgument?: number
 }
 
+interface AtmosphereData {
+  color: string
+  glowColor: string
+  scale?: number
+  intensity?: number
+  power?: number
+  opacity?: number
+}
+
 const props = defineProps<{
   name: string
   size: number
@@ -39,9 +48,11 @@ const props = defineProps<{
   periapsisArgument?: number // argument of periapsis in degrees
   inclination?: number // orbital inclination in degrees
   longitudeOfAscendingNode?: number // longitude of ascending node in degrees
+  atmosphere?: AtmosphereData // atmospheric scattering configuration
 }>()
 
 const planetRef = ref<THREE.Mesh>()
+const atmosphereRef = ref<THREE.Mesh>()
 
 // Calculate current mean anomaly based on simulation time
 // Uses real J2000.0 ephemeris data for accurate positions
@@ -94,6 +105,75 @@ if (props.texture) {
   })
 }
 
+// Atmosphere shader - convert hex to vec3
+function hexToVec3(hex: string): THREE.Vector3 {
+  const color = new THREE.Color(hex)
+  return new THREE.Vector3(color.r, color.g, color.b)
+}
+
+// Atmosphere uniforms (only created if atmosphere exists)
+const atmosphereUniforms = props.atmosphere ? {
+  uAtmosphereColor: { value: hexToVec3(props.atmosphere.color) },
+  uGlowColor: { value: hexToVec3(props.atmosphere.glowColor) },
+  uIntensity: { value: props.atmosphere.intensity ?? 1.0 },
+  uPower: { value: props.atmosphere.power ?? 4.0 },
+  uOpacity: { value: props.atmosphere.opacity ?? 0.8 },
+  uSunPosition: { value: new THREE.Vector3(0, 0, 0) }
+} : null
+
+// Atmosphere vertex shader
+const atmosphereVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vPositionW;
+  
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+    vPositionW = worldPosition.xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+// Atmosphere fragment shader
+const atmosphereFragmentShader = `
+  uniform vec3 uAtmosphereColor;
+  uniform vec3 uGlowColor;
+  uniform float uIntensity;
+  uniform float uPower;
+  uniform float uOpacity;
+  uniform vec3 uSunPosition;
+  
+  varying vec3 vNormal;
+  varying vec3 vPositionW;
+  
+  void main() {
+    vec3 viewDirection = normalize(cameraPosition - vPositionW);
+    
+    // Fresnel effect - stronger at edges
+    float fresnel = 1.0 - max(dot(viewDirection, vNormal), 0.0);
+    fresnel = pow(fresnel, uPower);
+    
+    // Sun direction for day/night variation
+    vec3 sunDir = normalize(uSunPosition - vPositionW);
+    float sunFacing = max(dot(vNormal, sunDir), 0.0);
+    
+    // Mix colors based on fresnel
+    vec3 color = mix(uAtmosphereColor, uGlowColor, fresnel);
+    
+    // Day/night factor
+    float dayNightFactor = 0.3 + 0.7 * sunFacing;
+    
+    // Rayleigh-like scattering
+    float scatter = pow(fresnel, 2.0);
+    color = mix(color, uGlowColor * 1.2, scatter * 0.3);
+    
+    color *= uIntensity * dayNightFactor;
+    float alpha = fresnel * uOpacity;
+    
+    gl_FragColor = vec4(color, alpha);
+  }
+`
+
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(({ delta }) => {
@@ -120,6 +200,11 @@ onBeforeRender(({ delta }) => {
       planetRef.value.position.copy(position)
       planetPosition.value.copy(position)
       
+      // Sync atmosphere position with planet
+      if (atmosphereRef.value) {
+        atmosphereRef.value.position.copy(position)
+      }
+      
       // On-axis rotation (around tilted axis)
       planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
     }
@@ -145,6 +230,20 @@ onBeforeRender(({ delta }) => {
       :color="props.color"
       :roughness="0.8"
       :metalness="0.2"
+    />
+  </TresMesh>
+
+  <!-- Atmosphere (separate mesh that follows planet position) -->
+  <TresMesh v-if="props.atmosphere && atmosphereUniforms" ref="atmosphereRef" :position="[distance, 0, 0]">
+    <TresSphereGeometry :args="[props.size * (props.atmosphere.scale ?? 1.15), 64, 64]" />
+    <TresShaderMaterial
+      :vertex-shader="atmosphereVertexShader"
+      :fragment-shader="atmosphereFragmentShader"
+      :uniforms="atmosphereUniforms"
+      :transparent="true"
+      :side="1"
+      :depth-write="false"
+      :blending="2"
     />
   </TresMesh>
 

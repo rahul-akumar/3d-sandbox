@@ -255,7 +255,15 @@ const planets = [
     periapsisArgument: 55,
     inclination: 3.39, // degrees
     longitudeOfAscendingNode: 76.68, // degrees
-    moons: []
+    moons: [],
+    atmosphere: {
+      color: '#E8C87A', // Yellowish sulfuric acid clouds
+      glowColor: '#D4A855',
+      scale: 1.12,
+      intensity: 1.3,
+      power: 3.0,
+      opacity: 0.9
+    }
   },
   {
     name: 'Earth',
@@ -271,7 +279,15 @@ const planets = [
     longitudeOfAscendingNode: 0, // degrees
     moons: [
       { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 0.5, texture: '/textures/moon.jpg', eccentricity: 0.055, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#6B93D6', // Blue nitrogen/oxygen atmosphere
+      glowColor: '#87CEEB',
+      scale: 1.08,
+      intensity: 1.0,
+      power: 4.5,
+      opacity: 0.7
+    }
   },
   {
     name: 'Mars',
@@ -288,7 +304,15 @@ const planets = [
     moons: [
       { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 3.0, texture: '/textures/phobos.jpg', eccentricity: 0.015, periapsisArgument: 0 },
       { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 1.0, texture: '/textures/deimos.jpg', eccentricity: 0.0003, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#D4A574', // Thin dusty CO2 atmosphere
+      glowColor: '#C4956A',
+      scale: 1.04,
+      intensity: 0.4,
+      power: 5.0,
+      opacity: 0.3
+    }
   },
   {
     name: 'Jupiter',
@@ -307,7 +331,15 @@ const planets = [
       { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 0.8, eccentricity: 0.009, periapsisArgument: 0 },
       { name: 'Ganymede', size: 0.53, distance: 17, color: '#998877', speed: 0.4, eccentricity: 0.001, periapsisArgument: 0 },
       { name: 'Callisto', size: 0.48, distance: 20, color: '#776655', speed: 0.2, eccentricity: 0.007, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#C9B896', // Hydrogen/helium with ammonia clouds
+      glowColor: '#B8A078',
+      scale: 1.06,
+      intensity: 0.6,
+      power: 3.5,
+      opacity: 0.5
+    }
   },
   {
     name: 'Saturn',
@@ -326,7 +358,15 @@ const planets = [
       { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.4, texture: '/textures/titan.jpg', eccentricity: 0.029, periapsisArgument: 0 },
       { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 0.7, eccentricity: 0.001, periapsisArgument: 0 },
       { name: 'Iapetus', size: 0.15, distance: 18, color: '#665544', speed: 0.1, eccentricity: 0.028, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#E8D8A8', // Pale golden hydrogen/helium
+      glowColor: '#D4C088',
+      scale: 1.07,
+      intensity: 0.5,
+      power: 3.5,
+      opacity: 0.45
+    }
   },
   {
     name: 'Uranus',
@@ -346,7 +386,15 @@ const planets = [
       { name: 'Umbriel', size: 0.12, distance: 9, color: '#8899aa', speed: 0.5, eccentricity: 0.004, periapsisArgument: 0 },
       { name: 'Titania', size: 0.16, distance: 10.5, color: '#9daabb', speed: 0.3, eccentricity: 0.001, periapsisArgument: 0 },
       { name: 'Oberon', size: 0.15, distance: 12, color: '#8899aa', speed: 0.2, eccentricity: 0.001, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#7DD8E8', // Cyan methane atmosphere
+      glowColor: '#5BC8D8',
+      scale: 1.08,
+      intensity: 0.6,
+      power: 4.0,
+      opacity: 0.5
+    }
   },
   {
     name: 'Neptune',
@@ -362,7 +410,15 @@ const planets = [
     longitudeOfAscendingNode: 131.78, // degrees
     moons: [
       { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 0.5, texture: '/textures/triton.jpg', eccentricity: 0.00002, periapsisArgument: 0 }
-    ]
+    ],
+    atmosphere: {
+      color: '#5080E0', // Deep blue methane atmosphere
+      glowColor: '#4070D0',
+      scale: 1.08,
+      intensity: 0.7,
+      power: 4.0,
+      opacity: 0.55
+    }
   },
 ]
 
@@ -573,7 +629,8 @@ const dwarfPlanets = [
         :distance="planet.distance" :color="planet.color" :speed="planet.speed" :texture="planet.texture"
         :moons="planet.moons" :has-rings="planet.hasRings" :axial-tilt="planet.axialTilt"
         :eccentricity="planet.eccentricity" :periapsis-argument="planet.periapsisArgument"
-        :inclination="planet.inclination" :longitude-of-ascending-node="planet.longitudeOfAscendingNode" />
+        :inclination="planet.inclination" :longitude-of-ascending-node="planet.longitudeOfAscendingNode"
+        :atmosphere="planet.atmosphere" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />
