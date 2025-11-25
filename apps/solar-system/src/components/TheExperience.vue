@@ -6,6 +6,7 @@ import { EffectComposerPmndrs, BloomPmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize } from 'postprocessing'
 import Planet from './Planet.vue'
 import AsteroidBelt from './AsteroidBelt.vue'
+import KuiperBelt from './KuiperBelt.vue'
 import FireSun from './FireSun.vue'
 import StarfieldSkybox from './StarfieldSkybox.vue'
 import { useFirstPersonCamera } from '../composables/useFirstPersonCamera'
@@ -344,6 +345,92 @@ const planets = [
     ]
   },
 ]
+
+// Dwarf planets with accurate orbital data
+// Distances scaled to continue from Neptune's visual scale
+const dwarfPlanets = [
+  {
+    name: 'Ceres',
+    size: 0.25,
+    distance: 140, // In asteroid belt (~2.77 AU)
+    color: '#9a9a8a', // Grayish
+    speed: 0.214, // Orbital period: 4.6 years
+    texture: undefined as string | undefined,
+    axialTilt: 4,
+    eccentricity: 0.076,
+    periapsisArgument: 73,
+    inclination: 10.59,
+    longitudeOfAscendingNode: 80.33,
+    moons: []
+  },
+  {
+    name: 'Pluto',
+    size: 0.6,
+    distance: 700, // ~39.5 AU average
+    color: '#d4c4a8', // Tan/beige
+    speed: 0.00404, // Orbital period: 248 years
+    texture: undefined as string | undefined,
+    axialTilt: 122.53, // Extreme tilt, almost on its side
+    eccentricity: 0.2488, // Highly eccentric
+    periapsisArgument: 113.83,
+    inclination: 17.16, // High inclination
+    longitudeOfAscendingNode: 110.30,
+    moons: [
+      { name: 'Charon', size: 0.3, distance: 2.5, color: '#8a8a8a', speed: 0.25, eccentricity: 0.0002, periapsisArgument: 0 },
+      { name: 'Nix', size: 0.04, distance: 4, color: '#aaaaaa', speed: 0.15, eccentricity: 0.002, periapsisArgument: 0 },
+      { name: 'Hydra', size: 0.04, distance: 5, color: '#aaaaaa', speed: 0.1, eccentricity: 0.006, periapsisArgument: 0 }
+    ]
+  },
+  {
+    name: 'Haumea',
+    size: 0.4,
+    distance: 720, // ~43 AU average
+    color: '#e8e8e8', // Very bright/white (crystalline ice)
+    speed: 0.00354, // Orbital period: 283 years
+    texture: undefined as string | undefined,
+    axialTilt: 126,
+    eccentricity: 0.195,
+    periapsisArgument: 239,
+    inclination: 28.19, // Very high inclination
+    longitudeOfAscendingNode: 122.1,
+    moons: [
+      { name: "Hi'iaka", size: 0.08, distance: 3, color: '#cccccc', speed: 0.2, eccentricity: 0.05, periapsisArgument: 0 },
+      { name: 'Namaka', size: 0.05, distance: 2, color: '#bbbbbb', speed: 0.4, eccentricity: 0.2, periapsisArgument: 0 }
+    ]
+  },
+  {
+    name: 'Makemake',
+    size: 0.45,
+    distance: 750, // ~45.8 AU average
+    color: '#c9a07a', // Reddish-brown
+    speed: 0.00323, // Orbital period: 310 years
+    texture: undefined as string | undefined,
+    axialTilt: 0, // Unknown, assumed small
+    eccentricity: 0.161,
+    periapsisArgument: 297,
+    inclination: 28.98,
+    longitudeOfAscendingNode: 79.62,
+    moons: [
+      { name: 'MK2', size: 0.04, distance: 2.5, color: '#555555', speed: 0.3, eccentricity: 0.0, periapsisArgument: 0 }
+    ]
+  },
+  {
+    name: 'Eris',
+    size: 0.6,
+    distance: 900, // ~68 AU average (highly eccentric: 38-98 AU)
+    color: '#f0f0f0', // Very white/gray
+    speed: 0.00179, // Orbital period: 559 years
+    texture: undefined as string | undefined,
+    axialTilt: 78,
+    eccentricity: 0.44, // Extremely eccentric
+    periapsisArgument: 151,
+    inclination: 44.04, // Extreme inclination
+    longitudeOfAscendingNode: 35.87,
+    moons: [
+      { name: 'Dysnomia', size: 0.15, distance: 3, color: '#888888', speed: 0.2, eccentricity: 0.0, periapsisArgument: 0 }
+    ]
+  },
+]
 </script>
 
 <template>
@@ -430,11 +517,11 @@ const planets = [
     </div>
 
     <TresCanvas clear-color="#000000" window-size :shadows="true">
-      <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" :far="10000" />
+      <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" :far="15000" />
 
       <!-- OrbitControls (only active when not in fly mode) -->
       <OrbitControls v-if="!isFlyMode" ref="orbitControlsRef" :enable-damping="true" :damping-factor="0.05"
-        :min-distance="0.5" :max-distance="1500" :target="orbitTarget" />
+        :min-distance="0.5" :max-distance="3000" :target="orbitTarget" />
       <StarfieldSkybox 
         v-if="showStars" 
         texture="/textures/starmap.jpg" 
@@ -461,6 +548,16 @@ const planets = [
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />
+
+      <!-- Dwarf Planets -->
+      <Planet v-for="dwarf in dwarfPlanets" :key="dwarf.name" :name="dwarf.name" :size="dwarf.size"
+        :distance="dwarf.distance" :color="dwarf.color" :speed="dwarf.speed" :texture="dwarf.texture"
+        :moons="dwarf.moons" :axial-tilt="dwarf.axialTilt"
+        :eccentricity="dwarf.eccentricity" :periapsis-argument="dwarf.periapsisArgument"
+        :inclination="dwarf.inclination" :longitude-of-ascending-node="dwarf.longitudeOfAscendingNode" />
+
+      <!-- Kuiper Belt beyond Neptune -->
+      <KuiperBelt :count="8000" :min-radius="650" :max-radius="1000" :size="0.4" />
 
       <!-- Post-processing with separate bloom for sun and stars -->
       <EffectComposerPmndrs>
