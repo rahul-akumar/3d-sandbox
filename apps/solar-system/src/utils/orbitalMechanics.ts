@@ -5,6 +5,8 @@ export interface OrbitalElements {
   eccentricity: number // Eccentricity (e), 0 = circle, 0-1 = ellipse
   periapsisArgument: number // Argument of periapsis (ω) in radians
   meanAnomalyAtEpoch: number // Mean anomaly at epoch (M₀) in radians
+  inclination?: number // Orbital inclination (i) in radians - tilt of orbital plane
+  longitudeOfAscendingNode?: number // Longitude of ascending node (Ω) in radians
 }
 
 /**
@@ -59,6 +61,38 @@ export function eccentricToTrueAnomaly(eccentricAnomaly: number, eccentricity: n
 }
 
 /**
+ * Applies orbital inclination and longitude of ascending node to transform
+ * a position from the orbital plane to the reference (ecliptic) plane
+ * 
+ * @param position - Position in orbital plane (y=0)
+ * @param inclination - Orbital inclination in radians
+ * @param longitudeOfAscendingNode - Longitude of ascending node in radians
+ * @returns Transformed position in 3D space
+ */
+function applyOrbitalInclination(
+  x: number,
+  z: number,
+  inclination: number,
+  longitudeOfAscendingNode: number
+): THREE.Vector3 {
+  // First, rotate around Z-axis by -longitudeOfAscendingNode to align with ascending node
+  const cosOmega = Math.cos(longitudeOfAscendingNode)
+  const sinOmega = Math.sin(longitudeOfAscendingNode)
+  
+  // Then rotate around X-axis by inclination to tilt the orbital plane
+  const cosI = Math.cos(inclination)
+  const sinI = Math.sin(inclination)
+  
+  // Combined rotation: R_z(Ω) * R_x(i) * position
+  // This rotates the orbital plane from XZ to the inclined plane
+  const x1 = x * cosOmega - z * sinOmega * cosI
+  const y1 = z * sinI
+  const z1 = x * sinOmega + z * cosOmega * cosI
+  
+  return new THREE.Vector3(x1, y1, z1)
+}
+
+/**
  * Calculates orbital position from orbital elements at a given time
  * Implements Kepler's laws for elliptical motion
  * 
@@ -72,7 +106,14 @@ export function calculateOrbitalPosition(
   time: number,
   speedMultiplier = 1
 ): THREE.Vector3 {
-  const { semiMajorAxis, eccentricity, periapsisArgument, meanAnomalyAtEpoch } = elements
+  const { 
+    semiMajorAxis, 
+    eccentricity, 
+    periapsisArgument, 
+    meanAnomalyAtEpoch,
+    inclination = 0,
+    longitudeOfAscendingNode = 0
+  } = elements
 
   // Calculate mean anomaly at current time
   // Mean anomaly increases linearly with time (mean motion)
@@ -96,7 +137,8 @@ export function calculateOrbitalPosition(
   const x = distance * Math.cos(angleInOrbit)
   const z = distance * Math.sin(angleInOrbit)
 
-  return new THREE.Vector3(x, 0, z)
+  // Apply orbital inclination to get 3D position
+  return applyOrbitalInclination(x, z, inclination, longitudeOfAscendingNode)
 }
 
 /**
@@ -111,7 +153,13 @@ export function generateEllipsePoints(
   segments = 128
 ): THREE.Vector3[] {
   const points: THREE.Vector3[] = []
-  const { semiMajorAxis, eccentricity, periapsisArgument } = elements
+  const { 
+    semiMajorAxis, 
+    eccentricity, 
+    periapsisArgument,
+    inclination = 0,
+    longitudeOfAscendingNode = 0
+  } = elements
 
   for (let i = 0; i <= segments; i++) {
     const trueAnomaly = (i / segments) * Math.PI * 2
@@ -126,7 +174,9 @@ export function generateEllipsePoints(
     const x = distance * Math.cos(angleInOrbit)
     const z = distance * Math.sin(angleInOrbit)
 
-    points.push(new THREE.Vector3(x, 0, z))
+    // Apply orbital inclination
+    const point = applyOrbitalInclination(x, z, inclination, longitudeOfAscendingNode)
+    points.push(point)
   }
 
   return points

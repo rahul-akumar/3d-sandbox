@@ -205,6 +205,8 @@ const planets = [
     axialTilt: 0.034, // degrees
     eccentricity: 0.206, // Most eccentric planet
     periapsisArgument: 29, // degrees
+    inclination: 7.00, // degrees - highest inclination of inner planets
+    longitudeOfAscendingNode: 48.33, // degrees
     moons: []
   },
   {
@@ -217,6 +219,8 @@ const planets = [
     axialTilt: 177.4, // degrees - retrograde rotation
     eccentricity: 0.007, // Nearly circular
     periapsisArgument: 55,
+    inclination: 3.39, // degrees
+    longitudeOfAscendingNode: 76.68, // degrees
     moons: []
   },
   {
@@ -229,6 +233,8 @@ const planets = [
     axialTilt: 23.44, // degrees
     eccentricity: 0.017, // Nearly circular
     periapsisArgument: 103,
+    inclination: 0, // degrees - reference plane (ecliptic)
+    longitudeOfAscendingNode: 0, // degrees
     moons: [
       { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 0.5, texture: '/textures/moon.jpg', eccentricity: 0.055, periapsisArgument: 0 }
     ]
@@ -243,6 +249,8 @@ const planets = [
     axialTilt: 25.19, // degrees
     eccentricity: 0.093,
     periapsisArgument: 286,
+    inclination: 1.85, // degrees
+    longitudeOfAscendingNode: 49.56, // degrees
     moons: [
       { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 0.8, texture: '/textures/phobos.jpg', eccentricity: 0.015, periapsisArgument: 0 },
       { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 0.6, texture: '/textures/deimos.jpg', eccentricity: 0.0003, periapsisArgument: 0 }
@@ -258,6 +266,8 @@ const planets = [
     axialTilt: 3.13, // degrees
     eccentricity: 0.049,
     periapsisArgument: 14,
+    inclination: 1.31, // degrees
+    longitudeOfAscendingNode: 100.46, // degrees
     moons: [
       { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 0.5, eccentricity: 0.004, periapsisArgument: 0 },
       { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 0.4, eccentricity: 0.009, periapsisArgument: 0 },
@@ -275,6 +285,8 @@ const planets = [
     axialTilt: 26.73, // degrees
     eccentricity: 0.057,
     periapsisArgument: 93,
+    inclination: 2.49, // degrees
+    longitudeOfAscendingNode: 113.64, // degrees
     hasRings: true,
     moons: [
       { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.36, texture: '/textures/titan.jpg', eccentricity: 0.029, periapsisArgument: 0 },
@@ -292,6 +304,8 @@ const planets = [
     axialTilt: 97.77, // degrees - rotates on its side!
     eccentricity: 0.046,
     periapsisArgument: 173,
+    inclination: 0.77, // degrees
+    longitudeOfAscendingNode: 74.01, // degrees
     moons: [
       { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 0.6, eccentricity: 0.001, periapsisArgument: 0 },
       { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 0.5, eccentricity: 0.001, periapsisArgument: 0 },
@@ -310,6 +324,8 @@ const planets = [
     axialTilt: 28.32, // degrees
     eccentricity: 0.009,
     periapsisArgument: 44,
+    inclination: 1.77, // degrees
+    longitudeOfAscendingNode: 131.78, // degrees
     moons: [
       { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 0.4, texture: '/textures/triton.jpg', eccentricity: 0.00002, periapsisArgument: 0 }
     ]
@@ -427,7 +443,8 @@ const planets = [
       <Planet v-for="planet in planets" :key="planet.name" :name="planet.name" :size="planet.size"
         :distance="planet.distance" :color="planet.color" :speed="planet.speed" :texture="planet.texture"
         :moons="planet.moons" :has-rings="planet.hasRings" :axial-tilt="planet.axialTilt"
-        :eccentricity="planet.eccentricity" :periapsis-argument="planet.periapsisArgument" />
+        :eccentricity="planet.eccentricity" :periapsis-argument="planet.periapsisArgument"
+        :inclination="planet.inclination" :longitude-of-ascending-node="planet.longitudeOfAscendingNode" />
 
       <!-- Asteroid Belt between Mars and Jupiter -->
       <AsteroidBelt :count="10000" :min-radius="120" :max-radius="170" :size="0.3" />

@@ -35,6 +35,8 @@ const props = defineProps<{
   axialTilt?: number // in degrees
   eccentricity?: number // orbital eccentricity (0 = circle, 0-1 = ellipse)
   periapsisArgument?: number // argument of periapsis in degrees
+  inclination?: number // orbital inclination in degrees
+  longitudeOfAscendingNode?: number // longitude of ascending node in degrees
 }>()
 
 const planetRef = ref<THREE.Mesh>()
@@ -48,6 +50,8 @@ const orbitalElements = computed<OrbitalElements>(() => ({
   eccentricity: props.eccentricity ?? 0,
   periapsisArgument: ((props.periapsisArgument ?? 0) * Math.PI) / 180,
   meanAnomalyAtEpoch: Math.random() * Math.PI * 2, // Random start position
+  inclination: ((props.inclination ?? 0) * Math.PI) / 180,
+  longitudeOfAscendingNode: ((props.longitudeOfAscendingNode ?? 0) * Math.PI) / 180,
 }))
 
 const planetPosition = ref(new THREE.Vector3(props.distance, 0, 0))
