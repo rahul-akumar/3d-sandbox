@@ -203,13 +203,17 @@ onUnmounted(() => {
   document.removeEventListener('keydown', onKeyDown)
 })
 
+// Orbital speeds are based on real relative orbital periods
+// Speed = 1 / orbital period in Earth years (so Earth = 1.0)
+// Mercury: 0.241 yr, Venus: 0.615 yr, Earth: 1.0 yr, Mars: 1.88 yr
+// Jupiter: 11.86 yr, Saturn: 29.46 yr, Uranus: 84.01 yr, Neptune: 164.8 yr
 const planets = [
   {
     name: 'Mercury',
     size: 0.4,
     distance: 30,
     color: '#8c8c8c',
-    speed: 0.3,
+    speed: 4.15, // Orbital period: 88 days (0.241 years)
     texture: '/textures/mercury.jpg',
     axialTilt: 0.034, // degrees
     eccentricity: 0.206, // Most eccentric planet
@@ -223,7 +227,7 @@ const planets = [
     size: 0.9,
     distance: 50,
     color: '#e3bb76',
-    speed: 0.25,
+    speed: 1.63, // Orbital period: 225 days (0.615 years)
     texture: '/textures/venus.jpg',
     axialTilt: 177.4, // degrees - retrograde rotation
     eccentricity: 0.007, // Nearly circular
@@ -237,7 +241,7 @@ const planets = [
     size: 1.0,
     distance: 70,
     color: '#2277ff',
-    speed: 0.2,
+    speed: 1.0, // Orbital period: 365.25 days (1 year) - reference
     texture: '/textures/earth.jpg',
     axialTilt: 23.44, // degrees
     eccentricity: 0.017, // Nearly circular
@@ -245,7 +249,7 @@ const planets = [
     inclination: 0, // degrees - reference plane (ecliptic)
     longitudeOfAscendingNode: 0, // degrees
     moons: [
-      { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 0.5, texture: '/textures/moon.jpg', eccentricity: 0.055, periapsisArgument: 0 }
+      { name: 'Moon', size: 0.27, distance: 3.5, color: '#aaaaaa', speed: 13.4, texture: '/textures/moon.jpg', eccentricity: 0.055, periapsisArgument: 0 } // ~27.3 day orbit
     ]
   },
   {
@@ -253,7 +257,7 @@ const planets = [
     size: 0.5,
     distance: 100,
     color: '#df4020',
-    speed: 0.16,
+    speed: 0.532, // Orbital period: 687 days (1.88 years)
     texture: '/textures/mars.jpg',
     axialTilt: 25.19, // degrees
     eccentricity: 0.093,
@@ -261,8 +265,8 @@ const planets = [
     inclination: 1.85, // degrees
     longitudeOfAscendingNode: 49.56, // degrees
     moons: [
-      { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 0.8, texture: '/textures/phobos.jpg', eccentricity: 0.015, periapsisArgument: 0 },
-      { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 0.6, texture: '/textures/deimos.jpg', eccentricity: 0.0003, periapsisArgument: 0 }
+      { name: 'Phobos', size: 0.08, distance: 2.0, color: '#8b7355', speed: 1142, texture: '/textures/phobos.jpg', eccentricity: 0.015, periapsisArgument: 0 }, // 7.66 hour orbit
+      { name: 'Deimos', size: 0.06, distance: 3.0, color: '#9d8568', speed: 290, texture: '/textures/deimos.jpg', eccentricity: 0.0003, periapsisArgument: 0 } // 30.3 hour orbit
     ]
   },
   {
@@ -270,7 +274,7 @@ const planets = [
     size: 5.0,
     distance: 200,
     color: '#d8ca9d',
-    speed: 0.08,
+    speed: 0.0843, // Orbital period: 11.86 years
     texture: '/textures/jupiter.jpg',
     axialTilt: 3.13, // degrees
     eccentricity: 0.049,
@@ -278,10 +282,10 @@ const planets = [
     inclination: 1.31, // degrees
     longitudeOfAscendingNode: 100.46, // degrees
     moons: [
-      { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 0.5, eccentricity: 0.004, periapsisArgument: 0 },
-      { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 0.4, eccentricity: 0.009, periapsisArgument: 0 },
-      { name: 'Ganymede', size: 0.53, distance: 17, color: '#998877', speed: 0.3, eccentricity: 0.001, periapsisArgument: 0 },
-      { name: 'Callisto', size: 0.48, distance: 20, color: '#776655', speed: 0.25, eccentricity: 0.007, periapsisArgument: 0 }
+      { name: 'Io', size: 0.36, distance: 12, color: '#ffdd77', speed: 206, eccentricity: 0.004, periapsisArgument: 0 }, // 1.77 day orbit
+      { name: 'Europa', size: 0.31, distance: 14, color: '#ccbbaa', speed: 103, eccentricity: 0.009, periapsisArgument: 0 }, // 3.55 day orbit
+      { name: 'Ganymede', size: 0.53, distance: 17, color: '#998877', speed: 51, eccentricity: 0.001, periapsisArgument: 0 }, // 7.15 day orbit
+      { name: 'Callisto', size: 0.48, distance: 20, color: '#776655', speed: 21.9, eccentricity: 0.007, periapsisArgument: 0 } // 16.7 day orbit
     ]
   },
   {
@@ -289,7 +293,7 @@ const planets = [
     size: 4.0,
     distance: 320,
     color: '#fcd900',
-    speed: 0.06,
+    speed: 0.0339, // Orbital period: 29.46 years
     texture: '/textures/saturn.jpg',
     axialTilt: 26.73, // degrees
     eccentricity: 0.057,
@@ -298,9 +302,9 @@ const planets = [
     longitudeOfAscendingNode: 113.64, // degrees
     hasRings: true,
     moons: [
-      { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 0.36, texture: '/textures/titan.jpg', eccentricity: 0.029, periapsisArgument: 0 },
-      { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 0.3, eccentricity: 0.001, periapsisArgument: 0 },
-      { name: 'Iapetus', size: 0.15, distance: 18, color: '#665544', speed: 0.24, eccentricity: 0.028, periapsisArgument: 0 }
+      { name: 'Titan', size: 0.51, distance: 14, color: '#cc8844', speed: 22.8, texture: '/textures/titan.jpg', eccentricity: 0.029, periapsisArgument: 0 }, // 16 day orbit
+      { name: 'Rhea', size: 0.15, distance: 16, color: '#aabbcc', speed: 81, eccentricity: 0.001, periapsisArgument: 0 }, // 4.5 day orbit
+      { name: 'Iapetus', size: 0.15, distance: 18, color: '#665544', speed: 4.6, eccentricity: 0.028, periapsisArgument: 0 } // 79 day orbit
     ]
   },
   {
@@ -308,7 +312,7 @@ const planets = [
     size: 2.0,
     distance: 450,
     color: '#4fd0e7',
-    speed: 0.04,
+    speed: 0.0119, // Orbital period: 84.01 years
     texture: '/textures/uranus.jpg',
     axialTilt: 97.77, // degrees - rotates on its side!
     eccentricity: 0.046,
@@ -316,11 +320,11 @@ const planets = [
     inclination: 0.77, // degrees
     longitudeOfAscendingNode: 74.01, // degrees
     moons: [
-      { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 0.6, eccentricity: 0.001, periapsisArgument: 0 },
-      { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 0.5, eccentricity: 0.001, periapsisArgument: 0 },
-      { name: 'Umbriel', size: 0.12, distance: 9, color: '#8899aa', speed: 0.4, eccentricity: 0.004, periapsisArgument: 0 },
-      { name: 'Titania', size: 0.16, distance: 10.5, color: '#9daabb', speed: 0.36, eccentricity: 0.001, periapsisArgument: 0 },
-      { name: 'Oberon', size: 0.15, distance: 12, color: '#8899aa', speed: 0.3, eccentricity: 0.001, periapsisArgument: 0 }
+      { name: 'Miranda', size: 0.12, distance: 6, color: '#b0c4d0', speed: 259, eccentricity: 0.001, periapsisArgument: 0 }, // 1.41 day orbit
+      { name: 'Ariel', size: 0.12, distance: 7.5, color: '#c0d4e0', speed: 144, eccentricity: 0.001, periapsisArgument: 0 }, // 2.52 day orbit
+      { name: 'Umbriel', size: 0.12, distance: 9, color: '#8899aa', speed: 87, eccentricity: 0.004, periapsisArgument: 0 }, // 4.14 day orbit
+      { name: 'Titania', size: 0.16, distance: 10.5, color: '#9daabb', speed: 42, eccentricity: 0.001, periapsisArgument: 0 }, // 8.71 day orbit
+      { name: 'Oberon', size: 0.15, distance: 12, color: '#8899aa', speed: 27, eccentricity: 0.001, periapsisArgument: 0 } // 13.46 day orbit
     ]
   },
   {
@@ -328,7 +332,7 @@ const planets = [
     size: 2.0,
     distance: 600,
     color: '#4b70dd',
-    speed: 0.02,
+    speed: 0.00607, // Orbital period: 164.8 years
     texture: '/textures/neptune.jpg',
     axialTilt: 28.32, // degrees
     eccentricity: 0.009,
@@ -336,7 +340,7 @@ const planets = [
     inclination: 1.77, // degrees
     longitudeOfAscendingNode: 131.78, // degrees
     moons: [
-      { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 0.4, texture: '/textures/triton.jpg', eccentricity: 0.00002, periapsisArgument: 0 }
+      { name: 'Triton', size: 0.27, distance: 7, color: '#aaccee', speed: 62, texture: '/textures/triton.jpg', eccentricity: 0.00002, periapsisArgument: 0 } // 5.88 day retrograde orbit
     ]
   },
 ]
