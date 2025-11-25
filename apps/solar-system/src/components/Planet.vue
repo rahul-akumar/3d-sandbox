@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, inject, computed, onMounted, markRaw, type Ref } from 'vue'
+import { ref, inject, computed, onMounted, markRaw, type Ref, type ComputedRef } from 'vue'
 import { useLoop } from '@tresjs/core'
 import * as THREE from 'three'
 import Moon from './Moon.vue'
 import SaturnRings from './SaturnRings.vue'
 import { calculateOrbitalPosition, generateEllipsePoints, type OrbitalElements } from '../utils/orbitalMechanics'
+import { calculateMeanAnomaly } from '../data/ephemeris'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
 const simulationSpeed = inject<Ref<number>>('simulationSpeed', ref(1))
+const daysSinceEpoch = inject<ComputedRef<number>>('daysSinceEpoch')
 
 interface MoonData {
   name: string
@@ -41,15 +43,23 @@ const props = defineProps<{
 
 const planetRef = ref<THREE.Mesh>()
 
-// Time accumulator for orbital calculations
-const orbitTime = ref(0)
+// Calculate current mean anomaly based on simulation time
+// Uses real J2000.0 ephemeris data for accurate positions
+const currentMeanAnomaly = computed(() => {
+  if (daysSinceEpoch?.value !== undefined) {
+    // Use real ephemeris: M = M₀ + n × days_since_epoch
+    return (calculateMeanAnomaly(props.name, daysSinceEpoch.value) * Math.PI) / 180
+  }
+  // Fallback if no simulation time available
+  return 0
+})
 
 // Create orbital elements from props
 const orbitalElements = computed<OrbitalElements>(() => ({
   semiMajorAxis: props.distance,
   eccentricity: props.eccentricity ?? 0,
   periapsisArgument: ((props.periapsisArgument ?? 0) * Math.PI) / 180,
-  meanAnomalyAtEpoch: Math.random() * Math.PI * 2, // Random start position
+  meanAnomalyAtEpoch: currentMeanAnomaly.value, // Real ephemeris position
   inclination: ((props.inclination ?? 0) * Math.PI) / 180,
   longitudeOfAscendingNode: ((props.longitudeOfAscendingNode ?? 0) * Math.PI) / 180,
 }))
@@ -98,14 +108,13 @@ onBeforeRender(({ delta }) => {
     planetRef.value.rotation.x = axialTiltRadians
     
     if (!isPaused.value) {
-      // Update orbit time (controls position in ellipse)
-      orbitTime.value += props.speed * delta * simulationSpeed.value
-      
-      // Calculate position using Kepler's laws
+      // Position is now computed from simulation time via currentMeanAnomaly
+      // The orbitalElements.meanAnomalyAtEpoch is already the current mean anomaly
+      // So we pass time=0 since the position is already computed for the current date
       const position = calculateOrbitalPosition(
         orbitalElements.value,
-        orbitTime.value,
-        1 // speedMultiplier is already in orbitTime
+        0, // Time offset is 0 - position comes from simulation date
+        1
       )
       
       planetRef.value.position.copy(position)

@@ -11,6 +11,7 @@ import FireSun from './FireSun.vue'
 import StarfieldSkybox from './StarfieldSkybox.vue'
 import { useFirstPersonCamera } from '../composables/useFirstPersonCamera'
 import { useCelestialSelection } from '../composables/useCelestialSelection'
+import { useSimulationTime } from '../composables/useSimulationTime'
 import * as THREE from 'three'
 
 // Play/pause state
@@ -31,6 +32,16 @@ const cycleSpeed = () => {
   currentSpeedIndex.value = (currentSpeedIndex.value + 1) % speedMultipliers.length
   simulationSpeed.value = speedMultipliers[currentSpeedIndex.value]
 }
+
+// Simulation time state (real ephemeris-based time)
+const { 
+  daysSinceEpoch, 
+  formattedDate, 
+  advanceTime,
+  resetToNow,
+  jumpToEpoch 
+} = useSimulationTime()
+provide('daysSinceEpoch', daysSinceEpoch)
 
 // Orbit visibility state
 const showOrbits = ref(true)
@@ -148,6 +159,11 @@ const animate = () => {
   const currentTime = performance.now()
   const delta = (currentTime - lastTime) / 1000 // Convert to seconds
   lastTime = currentTime
+
+  // Advance simulation time (1 real second = 1 simulation day at 1x speed)
+  if (!isPaused.value) {
+    advanceTime(delta, simulationSpeed.value)
+  }
 
   // WASD camera movement works in both modes
   updateCamera(delta)
@@ -516,6 +532,15 @@ const dwarfPlanets = [
       {{ isFlyMode ? 'FLY MODE' : 'ORBIT MODE' }}
     </div>
 
+    <!-- Date Display -->
+    <div class="date-display">
+      <div class="date-value">{{ formattedDate }}</div>
+      <div class="date-controls">
+        <button @click="resetToNow" class="date-button" title="Jump to today">Today</button>
+        <button @click="jumpToEpoch" class="date-button" title="Jump to J2000.0 epoch">J2000</button>
+      </div>
+    </div>
+
     <TresCanvas clear-color="#000000" window-size :shadows="true">
       <TresPerspectiveCamera ref="cameraRef" :position="[0, 150, 450]" :look-at="[0, 0, 0]" :far="15000" />
 
@@ -774,5 +799,49 @@ kbd {
   font-size: 12px;
   font-weight: normal;
   letter-spacing: 1px;
+}
+
+/* Date Display */
+.date-display {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.date-value {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.date-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.date-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  padding: 4px 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 </style>
