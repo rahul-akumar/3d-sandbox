@@ -23,7 +23,11 @@ const togglePause = () => {
 }
 
 // Simulation speed state
-const speedMultipliers = [1, 2, 4, 6, 8, 10]
+// At 1x: 1 real second = 1 simulation day
+// Higher speeds for better visualization of orbital motion
+const speedMultipliers = [1, 10, 30, 100, 365, 1000]
+// Labels for display: 1d/s, 10d/s, 1mo/s, 100d/s, 1yr/s, 3yr/s
+const speedLabels = ['1d', '10d', '1mo', '100d', '1yr', '3yr']
 const currentSpeedIndex = ref(0)
 const simulationSpeed = ref(speedMultipliers[0])
 provide('simulationSpeed', simulationSpeed)
@@ -459,8 +463,8 @@ const dwarfPlanets = [
       </button>
 
       <!-- Speed Control Button -->
-      <button @click="cycleSpeed" class="control-button speed-button">
-        {{ simulationSpeed }}×
+      <button @click="cycleSpeed" class="control-button speed-button" :title="`${simulationSpeed} days per second`">
+        {{ speedLabels[currentSpeedIndex] }}/s
       </button>
 
       <!-- Orbit Toggle Button -->
