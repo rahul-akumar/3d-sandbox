@@ -169,9 +169,18 @@ const animate = () => {
 // Configure shadow quality when light is ready
 watchEffect(() => {
   if (sunLightRef.value) {
-    sunLightRef.value.shadow.mapSize.width = 2048
-    sunLightRef.value.shadow.mapSize.height = 2048
-    sunLightRef.value.shadow.bias = -0.0001
+    // Higher resolution shadow map for sharper shadows
+    sunLightRef.value.shadow.mapSize.width = 4096
+    sunLightRef.value.shadow.mapSize.height = 4096
+    
+    // Optimize shadow camera frustum for the scene scale
+    // Near plane just outside sun, far plane to cover outer planets
+    sunLightRef.value.shadow.camera.near = 6  // Just past sun radius (5)
+    sunLightRef.value.shadow.camera.far = 700 // Cover up to Neptune (~600)
+    
+    // Fine-tune bias to prevent shadow acne while keeping sharp edges
+    sunLightRef.value.shadow.bias = -0.0005
+    sunLightRef.value.shadow.normalBias = 0.02
   }
 })
 
