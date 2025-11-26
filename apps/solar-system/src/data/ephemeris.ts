@@ -103,6 +103,40 @@ export const PLANET_EPHEMERIS: Record<string, { meanAnomalyAtEpoch: number; mean
 }
 
 /**
+ * Sidereal rotation periods in Earth days
+ * Negative values indicate retrograde rotation
+ * 
+ * Sources: NASA Planetary Fact Sheets
+ */
+export const ROTATION_PERIODS: Record<string, number> = {
+  // Inner planets
+  Mercury: 58.646,      // 58.646 Earth days
+  Venus: -243.025,      // 243.025 days retrograde (rotates backwards)
+  Earth: 0.99727,       // 23h 56m 4s sidereal day
+  Mars: 1.02596,        // 24h 37m 22s
+  
+  // Outer planets (gas giants rotate fast!)
+  Jupiter: 0.41354,     // 9h 55m 30s
+  Saturn: 0.44401,      // 10h 39m 22s
+  Uranus: -0.71833,     // 17h 14m retrograde (rotates on its side, backwards)
+  Neptune: 0.67125,     // 16h 6m 36s
+  
+  // Dwarf planets
+  Ceres: 0.3781,        // 9h 4m 27s
+  Pluto: -6.3872,       // 6.387 days retrograde
+  Haumea: 0.163,        // 3h 55m (one of the fastest rotating large bodies)
+  Makemake: 0.9375,     // ~22.5 hours (estimated)
+  Eris: 1.08,           // ~26 hours (estimated)
+}
+
+/**
+ * Get rotation period for a body (returns 1 day if not found)
+ */
+export function getRotationPeriod(bodyName: string): number {
+  return ROTATION_PERIODS[bodyName] ?? 1
+}
+
+/**
  * Calculate current mean anomaly for a body
  * M = M₀ + n × Δt (mod 360°)
  * 

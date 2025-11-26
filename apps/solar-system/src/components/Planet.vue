@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import Moon from './Moon.vue'
 import SaturnRings from './SaturnRings.vue'
 import { calculateOrbitalPosition, generateEllipsePoints, type OrbitalElements } from '../utils/orbitalMechanics'
-import { calculateMeanAnomaly } from '../data/ephemeris'
+import { calculateMeanAnomaly, getRotationPeriod } from '../data/ephemeris'
 
 const isPaused = inject<Ref<boolean>>('isPaused', ref(false))
 const showOrbits = inject<Ref<boolean>>('showOrbits', ref(true))
@@ -39,7 +39,6 @@ const props = defineProps<{
   distance: number
   color: string
   speed: number
-  rotationSpeed?: number
   texture?: string
   moons?: MoonData[]
   hasRings?: boolean
@@ -95,6 +94,12 @@ onMounted(() => {
 
 // Convert axial tilt from degrees to radians
 const axialTiltRadians = (props.axialTilt || 0) * (Math.PI / 180)
+
+// Get real rotation period (in Earth days, negative = retrograde)
+const rotationPeriod = getRotationPeriod(props.name)
+// Rotation rate in radians per simulation day
+// Full rotation (2π) over rotationPeriod days
+const rotationRate = (2 * Math.PI) / rotationPeriod
 
 // Load texture if provided
 const textureMap = ref<THREE.Texture | null>(null)
@@ -205,8 +210,10 @@ onBeforeRender(({ delta }) => {
         atmosphereRef.value.position.copy(position)
       }
       
-      // On-axis rotation (around tilted axis)
-      planetRef.value.rotation.y += (props.rotationSpeed || 0.5) * delta * simulationSpeed.value
+      // On-axis rotation using real sidereal period
+      // delta is real seconds, simulationSpeed converts to simulation days
+      const simulationDays = delta * simulationSpeed.value
+      planetRef.value.rotation.y += rotationRate * simulationDays
     }
   }
 })
